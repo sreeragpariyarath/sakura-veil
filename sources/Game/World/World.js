@@ -21,8 +21,6 @@ import { RainLines } from './RainLines.js'
 import { Confetti } from './Confetti.js'
 import { Intro } from './Intro.js'
 import { PoleLights } from './PoleLights.js'
-import { Lanterns } from './Lanterns.js'
-import { Fences } from './Fences.js'
 import { Scenery } from './Scenery.js'
 import { SakuraTrees } from './SakuraTrees.js'
 
@@ -63,10 +61,8 @@ export class World
             this.snow = new Snow()
             this.visualTornado = new VisualTornado()
             this.flowers = new Flowers()
-            this.fences = new Fences()
             this.explosiveCrates = new ExplosiveCrates()
             this.poleLights = new PoleLights()
-            this.lanterns = new Lanterns()
             this.scenery = new Scenery()
             this.sakuraTrees = new SakuraTrees()
             this.areas = new Areas()

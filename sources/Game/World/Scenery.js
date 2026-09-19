@@ -9,10 +9,26 @@ export class Scenery
     {
         this.game = Game.getInstance()
 
+        this.game.resources.sceneryModel.scene.traverse((child) => {
+            const nameLower = (child.name || '').toLowerCase()
+            if(nameLower.includes('bruno') || nameLower.includes('author'))
+            {
+                child.visible = false
+                if(child.parent) child.parent.remove(child)
+            }
+        })
+
         this.references = new References()
         const model = [...this.game.resources.sceneryModel.scene.children]
         for(const child of model)
         {
+            const nameLower = (child.name || '').toLowerCase()
+            if(nameLower.includes('bruno') || nameLower.includes('author'))
+            {
+                child.visible = false
+                continue
+            }
+
             // Add
             if(typeof child.userData.prevent === 'undefined' || child.userData.prevent === false)
             {
