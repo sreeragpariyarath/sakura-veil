@@ -422,6 +422,9 @@ export class Snow
 
     update()
     {
+        this.mesh.visible = false
+        return
+
         this.elevationBinding.update()
 
         if(this.elevation.value > -0.9)

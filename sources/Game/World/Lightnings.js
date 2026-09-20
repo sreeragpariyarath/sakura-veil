@@ -465,6 +465,8 @@ export class Lightnings
 
     update()
     {
+        return
+
         const currentSecond = Math.floor(Date.now() / 1000)
 
         if(currentSecond !== this.currentSecond)

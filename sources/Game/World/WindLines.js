@@ -85,7 +85,7 @@ export class WindLines
 
         const displayInterval = () =>
         {
-            this.display()
+            this.pop()
 
             setTimeout(() =>
             {
@@ -139,12 +139,9 @@ export class WindLines
         displayInterval()
     }
 
-    display()
+    pop()
     {
-        const windLine = this.pool.find(windLine => windLine.available)
-
-        if(!windLine)
-            return
+        return
 
         // Apply weather
         this.durationBinding.update()

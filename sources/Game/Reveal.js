@@ -13,7 +13,7 @@ export class Reveal
         const respawn = this.game.respawns.getDefault()
         this.position = respawn.position.clone()
         this.position2Uniform = uniform(vec2(this.position.x, this.position.z))
-        this.distance = uniform(0)
+        this.distance = uniform(99999)
         this.thickness = uniform(0.05)
         this.color = uniform(color('#e88eff'))
         this.intensity = uniform(5.5)
@@ -45,131 +45,53 @@ export class Reveal
 
     updateStep(step)
     {
-        const speedMultiplier = location.hash.match(/skip/i) ? 4 : 1
+        // Skip intro loading circle sequence completely
+        this.distance.value = 99999
 
-        // Step 0
-        if(step === 0)
+        // Inputs
+        this.game.inputs.filters.clear()
+        this.game.inputs.filters.add('wandering')
+
+        // View
+        this.game.view.focusPoint.isTracking = true
+        this.game.view.focusPoint.magnet.active = false
+        this.game.view.zoom.baseRatio = 0
+        this.game.view.zoom.smoothedRatio = 0
+
+        // Cherry trees
+        if(this.game.world && this.game.world.cherryTrees)
         {
-            // Intro loader => Hide circle
-            this.game.world.intro.circle.hide(() =>
-            {
-                // Grid
-                this.game.world.grid.show()
-
-                // Reveal
-                this.distance.value = 0
-
-                gsap.to(
-                    this.distance,
-                    {
-                        value: 3.5,
-                        ease: 'back.out(1.7)',
-                        duration: 2 / speedMultiplier,
-                        overwrite: true,
-                    }
-                )
-
-                // View
-                this.game.view.zoom.smoothedRatio = 0.6
-                this.game.view.zoom.baseRatio = 0.6
-
-                gsap.to(
-                    this.game.view.zoom,
-                    {
-                        baseRatio: 0.3,
-                        // smoothedRatio: 0.4,
-                        ease: 'power1.inOut',
-                        duration: 1.25 / speedMultiplier,
-                        overwrite: true,
-                    }
-                )
-
-                // Cherry trees
-                if(this.game.world.cherryTrees)
-                    this.game.world.cherryTrees.leaves.seeThroughMultiplier = 0.5
-
-                // Skip click-to-start, go straight in
-                this.updateStep(1)
-            })
+            this.game.world.cherryTrees.leaves.seeThroughMultiplier = 1
         }
-        else if(step === 1)
+
+        if(this.game.interactivePoints)
+            this.game.interactivePoints.recover()
+        
+        if(this.game.world)
         {
-            // Audio
-            this.game.audio.init()
-            this.sound.play()
-
-            // Reveal
-            gsap.to(
-                this.distance,
-                {
-                    value: 30,
-                    ease: 'back.in(1.3)',
-                    duration: 2 / speedMultiplier,
-                    overwrite: true,
-                    onComplete: () =>
-                    {
-                        this.distance.value = 99999
-                    }
-                }
-            )
-
-            // Inputs
-            this.game.inputs.filters.clear()
-            this.game.inputs.filters.add('wandering')
-
-            // View
-            this.game.view.focusPoint.isTracking = true
-            this.game.view.focusPoint.magnet.active = false
-
-            // View
-            gsap.to(
-                this.game.view.zoom,
-                {
-                    baseRatio: 0,
-                    // smoothedRatio: 0,
-                    ease: 'back.in(1.5)',
-                    duration: 1.75 / speedMultiplier,
-                    overwrite: true,
-                    onComplete: () =>
-                    {
-                        this.updateStep(2)
-                    }
-                }
-            )
-
-            // Cherry trees
-            if(this.game.world.cherryTrees)
-            {
-                gsap.to(
-                    this.game.world.cherryTrees.leaves,
-                    {
-                        seeThroughMultiplier: 1,
-                        ease: 'power1.inOut',
-                        duration: 2 / speedMultiplier,
-                        overwrite: true
-                    }
-                )
+            this.game.world.step(2)
+            if(this.game.world.grid) {
+                this.game.world.grid.destroy()
+                this.game.world.grid = null
+            }
+            if(this.game.world.intro) {
+                this.game.world.intro.destroy()
+                this.game.world.intro = null
             }
         }
-        else if(step === 2)
-        {
-            this.game.interactivePoints.recover()
-            
-            this.game.world.step(2)
-            this.game.world.grid.destroy()
-            this.game.world.intro.destroy()
-            this.game.world.intro = null
 
+        if(this.game.overlay)
             this.game.overlay.moveOnTop()
 
+        if(this.game.server)
             this.game.server.start()
 
+        if(this.game.menu)
             this.game.menu.preopen()
 
-            this.game.ticker.events.off('tick', this.update)
-        }
+        this.game.ticker.events.off('tick', this.update)
 
-        this.step = step
+        this.step = 2
     }
 
     update()

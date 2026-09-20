@@ -8,13 +8,7 @@ export class MeshDefaultMaterial extends THREE.MeshLambertNodeMaterial
     {
         return Fn(([ outputColor ]) =>
         {
-            const distanceToCenter = positionWorld.xz.sub(game.reveal.position2Uniform).length()
-            distanceToCenter.greaterThan(game.reveal.distance).discard()
-
-            const revealMix = distanceToCenter.step(game.reveal.distance.sub(game.reveal.thickness))
-            // const revealMix = game.reveal.distance.sub(distanceToCenter).oneMinus().max(0).pow(4)
-            const revealColor = game.reveal.color.mul(game.reveal.intensity)
-            return mix(outputColor.rgb, revealColor, revealMix)
+            return outputColor.rgb
         })(outputColor)
     }
     

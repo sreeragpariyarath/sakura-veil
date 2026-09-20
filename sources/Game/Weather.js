@@ -25,17 +25,7 @@ export class Weather
             'temperature',
             -15,
             40,
-            () =>
-            {
-                const yearValue = this.game.yearCycles.properties.temperature.value
-                const dayValue = this.game.dayCycles.properties.temperature.value
-
-                const frequency = 0.4
-                const amplitude = 7.5
-                const variation = this.noise(this.game.dayCycles.absoluteProgress * frequency) * amplitude
-
-                return yearValue + dayValue + variation
-            }
+            () => 22
         )
 
         // Humidity
@@ -43,16 +33,7 @@ export class Weather
             'humidity',
             0,
             1,
-            () =>
-            {
-                const yearValue = this.game.yearCycles.properties.humidity.value
-
-                const frequency = 0.36
-                const amplitude = 0.2
-                const variation = this.noise(this.game.dayCycles.absoluteProgress * frequency) * amplitude
-
-                return yearValue + variation
-            }
+            () => 0.2
         )
 
         // Electric field
@@ -60,16 +41,7 @@ export class Weather
             'electricField',
             -1,
             1,
-            () =>
-            {
-                const dayValue = this.game.dayCycles.properties.electricField.value
-                
-                const frequency = 0.53
-                const amplitude = 1
-                const variation = this.noise(this.game.dayCycles.absoluteProgress * frequency) * amplitude
-
-                return dayValue * variation
-            }
+            () => 0
         )
 
         // Clouds
@@ -77,13 +49,7 @@ export class Weather
             'clouds',
             -1,
             1,
-            () =>
-            {
-                const frequency = 0.44
-                const amplitude = 1
-                const variation = this.noise(this.game.dayCycles.absoluteProgress * frequency) * amplitude
-                return variation
-            }
+            () => 0
         )
 
         // Wind
@@ -91,12 +57,7 @@ export class Weather
             'wind',
             0,
             1,
-            () =>
-            {
-                const frequency = 1
-                const variation = this.noise(this.game.dayCycles.absoluteProgress * frequency) * 0.5 + 0.5
-                return variation
-            }
+            () => 0.1
         )
 
         // Rain
@@ -104,10 +65,7 @@ export class Weather
             'rain',
             0,
             1,
-            () =>
-            {
-                return remapClamp(this.humidity.value, 0.65, 1, 0, 1) * remapClamp(this.clouds.value, 0, 1, 0, 1)
-            }
+            () => 0
         )
 
         // Snow
@@ -115,14 +73,7 @@ export class Weather
             'snow',
             -1,
             1,
-            () =>
-            {
-                const rainRatio = remapClamp(this.rain.value, 0.05, 0.3, 0, 1)
-                const freezeRatio = remapClamp(this.temperature.value, 0, -5, 0, 1)
-                const meltRatio = remapClamp(this.temperature.value, 0, 10, 0, -1)
-
-                return rainRatio * freezeRatio + meltRatio
-            }
+            () => 0
         )
         
         this.game.ticker.events.on('tick', () =>

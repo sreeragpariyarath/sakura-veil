@@ -224,35 +224,7 @@ export class RainLines
 
     update()
     {
-        // Apply weather
-        this.visibleRatioBinding.update()
-        this.lengthRatioBinding.update()
-        this.speedRatioBinding.update()
-        this.inclineRatioBinding.update()
-
-        this.mesh.visible = this.visibleRatio.value > 0.00001
-
-        if(this.mesh.visible)
-        {
-            this.center.value.set(this.game.view.optimalArea.position.x, this.game.view.optimalArea.position.z)
-            this.localTime.value += this.game.ticker.deltaScaled * this.speed
-
-            // Achievement
-            if(!this.achievementAchieved && this.game.reveal.step === 2 && this.visibleRatio.value > 0.04 && this.length.value > 0.2)
-            {
-                this.achievementAchieved = true
-                this.game.achievements.setProgress('weatherRain', 1)
-            }
-        }
-        
-        // if(!this.mesh.visible)
-        //     return
-
-        // const optimalAreaPosition = this.game.view.optimalArea.position
-        // const cameraPosition = this.game.view.defaultCamera.position
-        // const focusPoint = optimalAreaPosition.clone().lerp(cameraPosition, 0.5)
-        // this.focusPoint.value.set(focusPoint.x, focusPoint.z)
-
-        // this.game.rendering.renderer.computeAsync(this.updateCompute)
+        this.mesh.visible = false
+        return
     }
 }

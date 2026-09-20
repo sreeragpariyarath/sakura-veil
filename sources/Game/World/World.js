@@ -43,8 +43,6 @@ export class World
     {
         if(step === 0)
         {
-            this.grid = new Grid()
-            this.intro = new Intro()
         }
         else if(step === 1)
         {

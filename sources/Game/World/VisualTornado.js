@@ -162,9 +162,7 @@ export class VisualTornado
 
     update()
     {
-        this.visibility.value = this.game.tornado.strength
-
-        this.mesh.visible = !!this.game.tornado.strength
-        this.mesh.position.copy(this.game.tornado.position)
+        this.mesh.visible = false
+        return
     }
 }

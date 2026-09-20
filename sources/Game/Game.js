@@ -164,7 +164,8 @@ export class Game
             ],
             (toLoad, total) =>
             {
-                this.world.intro.updateProgress(1 - toLoad / total)
+                if(this.world && this.world.intro)
+                    this.world.intro.updateProgress(1 - toLoad / total)
             }
         )
 
@@ -193,9 +194,9 @@ export class Game
         if(this.quality.level === 0 && this.rendering.renderer.backend.isWebGPUBackend)
             PreRenderer.render()
 
-        this.ticker.wait(3, () =>
+        this.ticker.wait(1, () =>
         {
-            this.reveal.updateStep(0)
+            this.reveal.updateStep(2)
         })
 
         // Debug achievement
