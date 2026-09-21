@@ -661,8 +661,9 @@ export class View
                 // Focus point
                 if(action.active)
                 {
-                    // Map
-                    if(this.game.inputs.pointer.mode === Pointer.MODE_MOUSE || this.game.inputs.pointer.touches.length >= 2)
+                    // Map (touch only - single mouse drag now drives mouse-look instead,
+                    // see setMouseControls(); the two used to fight over the same drag)
+                    if(this.game.inputs.pointer.touches.length >= 2)
                     {
                         this.focusPoint.isTracking = false
                         

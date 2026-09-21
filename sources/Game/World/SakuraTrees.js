@@ -14,18 +14,56 @@ export class SakuraTrees
         this.group = new THREE.Group()
         this.group.name = 'sakuraTrees'
 
-        // Base transform and shadow configuration
+        // Base transform and shadow configuration. Material conversion is
+        // left to game.materials.updateObject() below - this scene's custom
+        // WebGPU/TSL lighting only lights MeshDefaultMaterial-derived
+        // materials, so a raw imported MeshStandardMaterial (however bright
+        // it looks in a standalone glTF viewer) renders essentially unlit
+        // here. Do NOT set material.userData.prevent = true: that flag is
+        // exactly what tells updateObject() to skip the conversion.
+        const isTrunkMesh = (child) =>
+        {
+            const name = (child.name || '').toLowerCase()
+            const matName = (child.material?.name || '').toLowerCase()
+
+            return name.includes('trunk') || name.includes('bark') || name.includes('wood') || name.includes('branch') ||
+                   matName.includes('trunk') || matName.includes('bark') || matName.includes('wood') || matName.includes('branch')
+        }
+
         this.model.traverse((child) =>
         {
             if(child.isMesh)
             {
-                child.castShadow = true
-                child.receiveShadow = true
-                if(child.material)
+                const isTrunk = isTrunkMesh(child)
+
+                if(isTrunk)
                 {
-                    child.material.side = THREE.DoubleSide
+                    child.castShadow = true
+                    child.receiveShadow = true
+                }
+                else
+                {
+                    // Leaves/blossoms: disable self-shadowing to prevent dark black spots
+                    child.castShadow = false
+                    child.receiveShadow = false
+                }
+
+                // Cutout transparency for leaves/blossoms, read by createFromMaterial()
+                if(child.material && !isTrunk)
+                {
+                    child.material.transparent = true
                 }
             }
+        })
+
+        // Convert every mesh's material into the game's lit TSL material system
+        this.game.materials.updateObject(this.model)
+
+        // Double-sided leaves/blossoms (createFromMaterial doesn't carry `side` over)
+        this.model.traverse((child) =>
+        {
+            if(child.isMesh && child.material && !isTrunkMesh(child))
+                child.material.side = THREE.DoubleSide
         })
 
         this.baseScale = 0.25 // Global size multiplier for all Sakura trees

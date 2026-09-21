@@ -8,8 +8,6 @@ import { WaterSurface } from './WaterSurface.js'
 import { Areas } from './Areas/Areas.js'
 import { WindLines } from './WindLines.js'
 import { Leaves } from './Leaves.js'
-import { Lightnings } from './Lightnings.js'
-import { Snow } from './Snow.js'
 import { Whispers } from './Whispers.js'
 import { VisualGhost } from './VisualGhost.js'
 import { VisualTornado } from './VisualTornado.js'
@@ -17,7 +15,6 @@ import { Flowers } from './Flowers.js'
 import { MeshDefaultMaterial } from '../Materials/MeshDefaultMaterial.js'
 import { Fireballs } from './Fireballs.js'
 import { ExplosiveCrates } from './ExplosiveCrates.js'
-import { RainLines } from './RainLines.js'
 import { Confetti } from './Confetti.js'
 import { Intro } from './Intro.js'
 import { PoleLights } from './PoleLights.js'
@@ -69,10 +66,8 @@ export class World
             this.windLines = safe('windLines', () => new WindLines())
             this.confetti = safe('confetti', () => new Confetti())
             this.leaves = safe('leaves', () => new Leaves())
-            this.rain = safe('rain', () => new RainLines())
-            this.lightnings = safe('lightnings', () => new Lightnings())
+            // Rain/snow/lightning removed per request; wind/windLines stay active
             this.fireballs = safe('fireballs', () => new Fireballs())
-            this.snow = safe('snow', () => new Snow())
             this.visualTornado = safe('visualTornado', () => new VisualTornado())
             this.flowers = safe('flowers', () => new Flowers())
             this.explosiveCrates = safe('explosiveCrates', () => new ExplosiveCrates())

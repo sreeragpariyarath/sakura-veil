@@ -32,7 +32,11 @@ export class Floor
 
     setVisual()
     {
-        this.size = Math.round(this.game.view.optimalArea.radius * 2) + 1
+        // Padded well beyond the strict optimal-area radius: tall objects
+        // (e.g. sakura trees) stay visible in silhouette above the ground's
+        // horizon even when their base sits past the tightly-computed view
+        // radius, so the ground must extend further than "just enough".
+        this.size = Math.round(this.game.view.optimalArea.radius * 3.2) + 30
         this.halfSize = this.size * 0.5
         this.cellSize = 1.5
         this.subdivisions = this.size / this.cellSize
@@ -95,7 +99,7 @@ export class Floor
         // Resize
         this.game.viewport.events.on('throttleChange', () =>
         {
-            this.size = Math.round(this.game.view.optimalArea.radius * 2) + 1
+            this.size = Math.round(this.game.view.optimalArea.radius * 3.2) + 30
             this.halfSize = this.size * 0.5
             this.subdivisions = this.size
             
