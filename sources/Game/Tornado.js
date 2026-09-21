@@ -48,6 +48,12 @@ export class Tornado
     {
         const points = []
 
+        if(!this.game.resources.tornadoPathReferencesModel?.scene)
+        {
+            this.path = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 0, 10)])
+            return
+        }
+
         const children = [...this.game.resources.tornadoPathReferencesModel.scene.children]
         children.sort((a, b) =>
         {

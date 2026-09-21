@@ -14,6 +14,9 @@ export class Flowers
     {
         this.game = Game.getInstance()
 
+        if(!this.game.resources.flowersReferencesModel?.scene)
+            return
+
         // Debug
         if(this.game.debug.active)
         {

@@ -10,6 +10,9 @@ export class PoleLights
     {
         this.game = Game.getInstance()
 
+        if(!this.game.resources.poleLightsModel?.scene)
+            return
+
         // Debug
         if(this.game.debug.active)
         {
@@ -23,21 +26,28 @@ export class PoleLights
         const [ base, references ] = InstancedGroup.getBaseAndReferencesFromInstances(this.game.resources.poleLightsModel.scene.children)
         this.references = references
         
-        // Setup base
-        for(const child of base.children)
+        // Setup new Japanese old lamp base
+        const scale = 0.015
+        const newBase = this.game.resources.japanOldLampModel.scene.clone()
+        newBase.traverse((child) =>
         {
-            child.name = child.name.replace(/[0-9]+$/i, '') // Set clear name to retrieve it later as instances
-            child.castShadow = true
-            child.receiveShadow = true
-        }
+            if(child.isMesh)
+            {
+                child.geometry = child.geometry.clone()
+                child.geometry.translate(0, -50, 0) // Lower lamp base to touch ground
+                child.geometry.scale(scale, scale, scale) // Bake scaling directly into 3D geometry
+                child.castShadow = true
+                child.receiveShadow = true
+            }
+        })
 
-        // Update materials 
-        this.game.materials.updateObject(base)
+        // Update materials with game's lighting system
+        this.game.materials.updateObject(newBase)
 
         // Create instanced group
-        this.instancedGroup = new InstancedGroup(this.references, base, false)
+        this.instancedGroup = new InstancedGroup(this.references, newBase, false)
 
-        this.glass = this.instancedGroup.meshes.find(mesh => mesh.instance.name === 'glass').instance
+        this.glass = this.instancedGroup.meshes.find(mesh => mesh.instance.name === 'glass')?.instance
         
         this.setPhysics()
         // this.setEmissives()
@@ -119,24 +129,6 @@ export class PoleLights
 
     setSwitchInterval()
     {
-
-        const intervalChange = (inInterval) =>
-        {
-            if(inInterval)
-            {
-                this.glass.visible = true
-
-                gsap.to(this.firefliesScale, { value: 1, duration: 5, overwrite: true })
-            }
-            else
-            {
-                this.glass.visible = false
-
-                gsap.to(this.firefliesScale, { value: 0, duration: 5, overwrite: true })
-            }
-        }
-
-        this.game.dayCycles.events.on('night', intervalChange)
-        intervalChange(this.game.dayCycles.intervalEvents.get('night').inInterval)
+        this.firefliesScale.value = 2.0
     }
 }

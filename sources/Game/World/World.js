@@ -41,33 +41,49 @@ export class World
 
     step(step)
     {
+        // Construct each subsystem in isolation: one broken/missing asset
+        // must never take down the rest of world construction (and with it,
+        // the reveal sequence that unlocks player input)
+        const safe = (label, factory) =>
+        {
+            try
+            {
+                return factory()
+            }
+            catch(error)
+            {
+                console.error(`World.step(${step}) > "${label}" failed to construct, skipping:`, error)
+                return null
+            }
+        }
+
         if(step === 0)
         {
         }
         else if(step === 1)
         {
-            this.visualVehicle = new VisualGhost(this.game.resources.vehicle.scene)
-            this.floor = new Floor()
-            this.waterSurface = new WaterSurface()
-            this.grass = new Grass()
-            this.windLines = new WindLines()
-            this.confetti = new Confetti()
-            this.leaves = new Leaves()
-            this.rain = new RainLines()
-            this.lightnings = new Lightnings()
-            this.fireballs = new Fireballs()
-            this.snow = new Snow()
-            this.visualTornado = new VisualTornado()
-            this.flowers = new Flowers()
-            this.explosiveCrates = new ExplosiveCrates()
-            this.poleLights = new PoleLights()
-            this.scenery = new Scenery()
-            this.sakuraTrees = new SakuraTrees()
-            this.areas = new Areas()
+            this.visualVehicle = safe('visualVehicle', () => new VisualGhost(this.game.resources.vehicle.scene))
+            this.floor = safe('floor', () => new Floor())
+            this.waterSurface = safe('waterSurface', () => new WaterSurface())
+            this.grass = safe('grass', () => new Grass())
+            this.windLines = safe('windLines', () => new WindLines())
+            this.confetti = safe('confetti', () => new Confetti())
+            this.leaves = safe('leaves', () => new Leaves())
+            this.rain = safe('rain', () => new RainLines())
+            this.lightnings = safe('lightnings', () => new Lightnings())
+            this.fireballs = safe('fireballs', () => new Fireballs())
+            this.snow = safe('snow', () => new Snow())
+            this.visualTornado = safe('visualTornado', () => new VisualTornado())
+            this.flowers = safe('flowers', () => new Flowers())
+            this.explosiveCrates = safe('explosiveCrates', () => new ExplosiveCrates())
+            this.poleLights = safe('poleLights', () => new PoleLights())
+            this.scenery = safe('scenery', () => new Scenery())
+            this.sakuraTrees = safe('sakuraTrees', () => new SakuraTrees())
+            this.areas = safe('areas', () => new Areas())
         }
         else if(step === 2)
         {
-            this.whispers = new Whispers()
+            this.whispers = safe('whispers', () => new Whispers())
         }
     }
 

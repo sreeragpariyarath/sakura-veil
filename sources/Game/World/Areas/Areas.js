@@ -25,7 +25,6 @@ export class Areas
             [ 'behindTheScene', BehindTheSceneArea ],
             [ 'bowling', BowlingArea ],
             [ 'career', CareerArea ],
-            [ 'circuit', CircuitArea ],
             [ 'cookie', CookieArea ],
             [ 'lab', LabArea ],
             [ 'landing', LandingArea ],
@@ -35,14 +34,39 @@ export class Areas
             [ 'timeMachine', TimeMachineArea ],
         ]
 
-        const model = [...this.game.resources.areasModel.scene.children]
-        
-        for(const child of model)
+        if(this.game.resources.areasModel?.scene)
         {
-            for(const [ name, AreaClass ] of list)
+            this.game.resources.areasModel.scene.traverse((child) =>
             {
-                if(child.name.startsWith(name))
-                    this[name] = new AreaClass(child)
+                const nameLower = (child.name || '').toLowerCase()
+                if(
+                    nameLower.startsWith('circuit') ||
+                    nameLower.includes('road') ||
+                    nameLower.includes('curb') ||
+                    nameLower.includes('tire') ||
+                    nameLower.includes('barrel') ||
+                    nameLower.includes('cone') ||
+                    nameLower.includes('bleacher') ||
+                    nameLower.includes('tent') ||
+                    nameLower.includes('scaffolding') ||
+                    nameLower.includes('gantry') ||
+                    nameLower.includes('leaderboard')
+                )
+                {
+                    child.visible = false
+                    if(child.parent) child.parent.remove(child)
+                }
+            })
+
+            const model = [...this.game.resources.areasModel.scene.children]
+            
+            for(const child of model)
+            {
+                for(const [ name, AreaClass ] of list)
+                {
+                    if(child.name.startsWith(name))
+                        this[name] = new AreaClass(child)
+                }
             }
         }
 

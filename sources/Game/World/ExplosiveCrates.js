@@ -9,6 +9,9 @@ export class ExplosiveCrates
     {
         this.game = Game.getInstance()
 
+        if(!this.game.resources.explosiveCratesModel?.scene)
+            return
+
         // Base and references
         const [ base, references ] = InstancedGroup.getBaseAndReferencesFromInstances(this.game.resources.explosiveCratesModel.scene.children)
         this.references = references

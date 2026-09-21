@@ -15,36 +15,46 @@ export class Respawns
     {
         this.items = new Map()
 
-        for(const child of this.game.resources.respawnsReferencesModel.scene.children)
+        const defaultItem = {
+            name: 'landing',
+            position: new THREE.Vector3(0, 4, 0),
+            rotation: 0
+        }
+        this.items.set('landing', defaultItem)
+
+        if(this.game.resources && this.game.resources.respawnsReferencesModel?.scene)
         {
-            child.rotation.reorder('YXZ')
+            for(const child of this.game.resources.respawnsReferencesModel.scene.children)
+            {
+                child.rotation.reorder('YXZ')
 
-            let name = child.name.replace(/^respawn(.+)$/i, '$1')
+                let name = child.name.replace(/^respawn(.+)$/i, '$1')
 
-            name = name.charAt(0).toLowerCase() + name.slice(1)
+                name = name.charAt(0).toLowerCase() + name.slice(1)
 
-            const item = {
-                name: name,
-                position: new THREE.Vector3(
-                    child.position.x,
-                    4,
-                    child.position.z
-                ),
-                rotation: child.rotation.y
+                const item = {
+                    name: name,
+                    position: new THREE.Vector3(
+                        child.position.x,
+                        4,
+                        child.position.z
+                    ),
+                    rotation: child.rotation.y
+                }
+
+                this.items.set(name, item)
             }
-
-            this.items.set(name, item)
         }
     }
 
     getByName(name)
     {
-        return this.items.get(name)
+        return this.items.get(name) || this.items.get('landing')
     }
 
     getDefault()
     {
-        return this.items.get(this.defaultName)
+        return this.items.get(this.defaultName) || this.items.get('landing')
     }
 
     getClosest(position)
