@@ -1,182 +1,102 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working in the **Sakura Veil** repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this is
 
-Sakura Veil is a 3D interactive portfolio experience built with Three.js WebGPU (`three/webgpu` + TSL shaders), Rapier3D physics, a floating spirit character named **Rei**, third-person camera controls, and Vite.
+Sakura Veil is a 3D interactive portfolio: a floating spirit named **Rei** explores a Japanese-inspired sakura world whose locations reveal projects, career, lab experiments and social links. Stack: Three.js WebGPU (`three/webgpu` + TSL node shaders), Rapier3D physics (WASM, lazy-imported), GSAP, Howler, Tweakpane, Vite. Plain JavaScript ES modules, no framework, no TypeScript.
 
-The experience is Japanese-inspired and atmospheric: Rei explores a sakura world where interactive locations reveal portfolio content, engineering projects, technical experiments, and personal information.
-
-There is currently no test suite, linter, or CI configuration in the repository. Verification is performed by running the development server, building the project, and manually playing and observing the scene.
+The codebase is a fork of Bruno Simon's folio-2025 (a driving game) being converted into a flying-ghost experience. Expect legacy names and leftovers: the player's physics body is `game.physicalVehicle` (`Physics/PhysicsFlight.js`), Rei's visual is `world.visualVehicle` (`World/VisualGhost.js`), Rei's GLB is loaded under the resource key **`vehicle`** (`character/ghost.glb`), and input categories are still named `wandering` / `racing` / `cinematic`. Do not rename these without updating every reference.
 
 ## Commands
 
 ```bash
-npm install --force
-npm run dev
-npm run build
+npm install --force   # --force is required for peer-dep conflicts
+npm run dev           # Vite dev server on :3000 (host exposed, auto-opens); restarts on static/** changes
+npm run build         # production build to dist/
 npm run preview
-npm run compress
+npm run compress      # gltf-transform (ETC1S + Draco) on static/**/*.glb -> *-compressed.glb, sharp for textures
 ```
 
-The development server is configured for port `3000`.
+There is no test suite, linter or CI. Verify by `npm run build` and by running the dev server and playing the scene. Append `#debug` to the URL to enable the Tweakpane debug panel (`H` toggles it; `V` toggles the free view camera); many systems only register their debug folders when `game.debug.active`.
 
-## Project Layout
+## Environment variables
 
-- `sources/` — application source and game systems
-- `static/` — public models, textures, audio, and UI assets
-- `scripts/` — asset-processing scripts
-- `dist/` — generated production output
-- `docs/` — architecture, art direction, and performance notes
+Loaded from the repo-root `.env` (`envDir: '../'` in `vite.config.js`; `.env*` is git-ignored):
 
-Vite uses `sources/` as its root, serves assets from `static/`, and writes the production build to `dist/`.
-
-## Environment Variables
-
-Environment variables are loaded from the repository root `.env` file.
-
-Important variables include:
-
-- `VITE_SERVER_URL` — optional multiplayer or WebSocket backend
-- `VITE_COMPRESSED` — selects compressed or raw assets
-- `VITE_GAME_PUBLIC` — exposes `window.game` for browser debugging
-- `VITE_LOG`
-- `VITE_PLAYER_SPAWN`
-- `VITE_DAY_CYCLE_PROGRESS`
-- `VITE_YEAR_CYCLE_PROGRESS`
-- `VITE_WHISPERS_COUNT`
-- `VITE_MUSIC`
-
-Never commit secrets or private `.env` files.
+- `VITE_COMPRESSED` — when set, load `*-compressed.glb` models and `.ktx` textures instead of raw `.glb` / `.png` (see the suffix logic in `Game.init()`).
+- `VITE_GAME_PUBLIC` — expose the `Game` instance as `window.game`.
+- `VITE_PLAYER_SPAWN` — respawn name to start at (default `landing`).
+- `VITE_SERVER_URL` — optional WebSocket backend (`Server.js`).
+- `VITE_LOG`, `VITE_MUSIC`, `VITE_WHISPERS_COUNT`, `VITE_YEAR_CYCLE_PROGRESS`.
+- `VITE_DAY_CYCLE_PROGRESS` is documented but currently unused: `DayCycles.js` hard-codes `forcedProgress = 0.0`.
 
 ## Architecture
 
-### Game Singleton and Subsystems
+Vite `root` is `sources/` (entry `sources/index.html` → `sources/index.js`), `publicDir` is `static/`, output is `dist/`. `resources/` holds Blender/Substance source files and is not served.
 
-`Game` is a singleton accessed through `Game.getInstance()`. It owns the primary subsystems, including physics, player, world, rendering, ticker, resources, and input handling.
+### Game singleton and startup order
 
-Subsystems commonly access other systems through the singleton. There is no dependency-injection container. Before adding a subsystem, inspect `Game.init()` and preserve the required construction order.
+`sources/Game/Game.js` is a singleton; every subsystem does `this.game = Game.getInstance()` in its constructor and reaches siblings through it (`this.game.physics`, `this.game.resources.foo`, …). Because of that, **construction order in `Game.init()` is a dependency order**: a subsystem can only touch siblings created before it. Startup is:
 
-### Resource Loading
+1. Core systems (debug, quality, ticker, time, cycles, inputs, audio, viewport, rendering), then `await rendering.setRenderer()`.
+2. First resource batch (intro textures), then view, post-processing, `rendering.start()` (which starts the animation loop), materials, `Objects`, `World` (step 0).
+3. Second resource batch **in parallel with** `import('@dimforge/rapier3d')`; the batch's progress drives `world.intro`.
+4. After both resolve: terrain, `Physics`, `PhysicsFlight`, zones, `Player`, interactive points, achievements, map, etc., then `world.step(1)` builds the world content, then overlay.
 
-Resources are loaded in batches:
+Anything that needs `game.physics`, `game.RAPIER` or second-batch resources must be constructed in phase 4 (or inside `World.step(1)` / later). `World.step()` wraps each subsystem in a `safe()` try/catch so one broken asset can't block the reveal sequence that unlocks input — keep new world subsystems inside that wrapper.
 
-1. A small initial batch for the intro/loading experience.
-2. A larger batch containing world models, character assets, textures, and other resources.
+### Resources
 
-Resources are stored in a flat map using the keys supplied to the resource loader. New resource keys must be unique and documented when they are not self-explanatory.
+`ResourcesLoader.load([[key, path, type, onLoad?], ...])` returns a flat object keyed by the given names, merged into `game.resources`. Types: `gltf` (with Draco + KTX2 loaders wired, decoders at `static/draco/` and `static/basis/`), `texture`, `textureKtx`. Texture sampling settings are applied in the per-entry callback in `Game.js`.
 
-### Frame Loop
+Several systems still read keys that are **not loaded** in the current `Game.js` (`areasModel`, `respawnsReferencesModel`, `benchesModel`, `bricksModel`, `poleLightsModel`, `explosiveCratesModel`, `flowersReferencesModel`, `tornadoPathReferencesModel`, `bushesReferences`, …). Those systems either guard with `?.` and do nothing, fall back to defaults (e.g. `Respawns` only has the hard-coded `landing` spawn), or fail inside `World.step`'s `safe()`. When something "doesn't appear", check whether its resource is actually loaded first.
 
-The game uses a ticker and event-based update system. Systems subscribe to the `tick` event with an explicit execution order.
+### Frame loop and tick order
 
-When adding a ticking system:
+`Rendering` calls `renderer.setAnimationLoop` → `Ticker.update()` → `ticker.events.trigger('tick')`. `Events.on(name, cb, order)` stores callbacks in order buckets and runs lower orders first; **the order argument, not construction order, decides execution order**. Current convention:
 
-- Determine which state it reads and writes.
-- Run movement and physics-dependent systems in the correct order.
-- Update camera-related systems after the player state they depend on is available.
-- Keep rendering-adjacent work near the existing rendering order.
-- Avoid expensive allocations and DOM operations inside the frame loop.
+| Order | Systems |
+|---|---|
+| 0 | `Time`, `Inputs` |
+| 1 | `Player.updatePrePhysics` |
+| 2 | `PhysicsFlight.updatePrePhysics` (apply forces); TSL-uniform prep in Floor/Grass/WaterSurface |
+| 3 | `Physics` world step |
+| 4 | `Objects` (sync visuals from physics bodies); `PhysicsWireframe` |
+| 5 | `PhysicsFlight.updatePostPhysics` |
+| 6 | `Player.updatePostPhysics` |
+| 7 | `View` (camera follow) |
+| 8 | `Cycles`, `Zones`, `Weather` |
+| 9 | `Wind`, `Tracks`, `Tornado`, `InteractivePoints`, `Lighting` |
+| 10 | Most world visuals and each `Area` (frustum test + `update()`) |
+| 13 | `InstancedGroup` matrix uploads |
+| 14 | UI/audio: `Audio`, `Notifications`, `Map`, `Title` |
+| 998 | Render |
 
-Do not assume construction order determines frame execution order; the event priority controls execution order.
+`ticker.wait(frames, cb)` defers by frames. `Ticker` also exposes TSL uniforms (`elapsedUniform`, `deltaScaledUniform`, …) that shaders read directly. Note `ticker.scale = 2`: gameplay generally uses `deltaScaled`.
 
-### Physics and Visual Objects
+### Physics ↔ visual objects
 
-The object layer bridges Rapier3D physics bodies and Three.js visual meshes. Maintain a clear separation between:
+`Objects.add(visualDescription, physicalDescription)` pairs a Three.js object with a Rapier body built by `Physics.getPhysical()` (types `fixed` / `dynamic` / kinematic; colliders by `shape`, `parameters`, `category`) and syncs them each tick. `Objects.addFromModel(child, …)` builds both from a GLTF node, reading physics settings (`mass`, `friction`, `restitution`, `category`, …) from Blender custom properties in `userData`. Opt-out flags in `userData`: `preventAutoAdd`, `preventFrustum`, `preventPreRender`. Static scenery should use `fixed` bodies with simplified colliders, or none.
 
-- Visual representation
-- Collision representation
-- Interaction metadata
+### Areas, references and zones
 
-Static scenery should not receive unnecessary dynamic physics bodies. Use simplified colliders for terrain, paths, buildings, trees, and environmental props.
+`World/Areas/Areas.js` walks the `areasModel` GLTF and instantiates an `Area` subclass for each top-level child whose name starts with a known key (`landing`, `projects`, `career`, `lab`, `social`, …). The `Area` base class auto-adds child objects, computes bounds and a frustum test, and only calls the subclass's `update()` while the area is on screen. Nodes named `ref<Name><n>` / `reference<Name><n>` are collected by `References` (`references.items.get('name')`, `getStartingWith(prefix)`) and are how areas locate spawn points, interaction spots and landmarks authored in Blender. `Zones.create('sphere'|…, position, radius)` emits enter/leave events (`#debug` → "Zones" → `previewVisible` shows them). Portfolio content lives in `sources/data/*.js` (projects, lab, social, achievements), separate from the systems that render it.
 
-### Rei Character System
+### Inputs
 
-Rei is a floating spirit, not a conventional walking character.
+`inputs.addActions([{ name, categories, keys }])` maps keyboard, gamepad, pointer and the mobile "nipple" joystick to named actions. Actions only fire when one of their categories matches an active input filter (`game.inputs.filters`: starts as `intro`; `ClosingManager` and areas such as Lab/Circuit swap in `wandering` / `racing` / `cinematic`), so a new action that never fires usually has the wrong categories.
 
-Character behavior should support:
+### Rendering and quality
 
-- Idle floating
-- Smooth movement
-- Rotation interpolation
-- Interaction
-- Discovery
-- Restoration or world-state events
+Materials are TSL node materials; `MeshDefaultMaterial` and the shared `Materials` palette (`palette` texture) give the world its look, and `materials.updateObject(model)` is applied to GLTF models added through `Objects`. `Quality.level` is `0` (high) on desktop and `1` (low) on mobile, and systems listen to its events to scale down. `PreRenderer` warms up shaders on high quality with a WebGPU backend.
 
-Avoid excessive vertical bobbing, camera shake, bloom, or particle effects. Rei must remain readable against bright sakura scenery.
+## Project direction (from the owner)
 
-### World and Interactive Areas
-
-World areas should be organized around meaningful discoveries rather than generic asset groups. Suggested area types include:
-
-- Sakura Entrance
-- Forgotten Shrine
-- Spirit Path
-- Memory Garden
-- Engineering Archive
-- Project Chambers
-- Restored Core
-
-Each interactive area should define:
-
-- A clear visual landmark
-- A readable interaction boundary
-- Its portfolio content or narrative purpose
-- Its unlock or progression behavior
-- Its performance budget
-
-Use named GLTF markers for interaction bounds, frustum zones, spawn points, and important landmarks.
-
-### Rendering and Performance
-
-The project uses Three.js WebGPU and TSL. Performance-sensitive systems must be profiled rather than optimized based only on assumptions.
-
-Pay particular attention to:
-
-- Transparent sakura petals and foliage
-- Shadow-map cost
-- Post-processing and bloom
-- Draw calls and material count
-- Texture resolution and memory usage
-- Large GLB loading and decompression time
-- Mobile and integrated-GPU behavior
-
-Prefer instancing, texture atlases, compressed textures, simplified collision geometry, and visibility management where appropriate.
-
-### Asset Pipeline
-
-3D assets are authored in Blender and exported as GLB files into `static/`. The compression script produces optimized sibling assets while preserving originals.
-
-Before accepting an asset:
-
-1. Confirm scale and orientation.
-2. Confirm material and texture naming.
-3. Confirm pivot placement.
-4. Confirm collision requirements.
-5. Confirm animation clip names where applicable.
-6. Test the asset in the target scene.
-7. Check loading size and GPU cost.
-
-Recommended animation names for Rei include:
-
-```text
-IdleFloat
-MoveFloat
-Dash
-Interact
-Discover
-Restore
-Damaged
-```
-
-Do not rename existing animation clips or resource keys without checking all references.
-
-## Engineering Rules
-
-- Preserve existing behavior unless the task explicitly requests a behavior change.
-- Avoid introducing dependencies without a clear need.
-- Do not place per-frame state in React or the DOM if it can remain inside the game runtime.
-- Keep UI, narrative content, and game systems modular.
+- Rei is a floating spirit, not a walking character: idle floating, smooth movement, interpolated rotation, interaction/discover/restore states. Avoid excessive bobbing, camera shake, bloom or particles; Rei must stay readable against bright sakura scenery. Preferred animation clip names: `IdleFloat`, `MoveFloat`, `Dash`, `Interact`, `Discover`, `Restore`, `Damaged`.
+- Areas should be meaningful discoveries (Sakura Entrance, Forgotten Shrine, Spirit Path, Memory Garden, Engineering Archive, Project Chambers, Restored Core), each with a landmark, a readable interaction boundary, its content and unlock behaviour, and named GLTF markers for bounds and spawns.
+- Prefer a polished small environment over a large unfinished map. Use purple as atmospheric lighting rather than as the material colour for everything.
+- Profile before optimizing. Watch transparent petals and foliage, shadows, post-processing, draw calls and material count, texture memory, GLB size and decode time, and mobile/integrated GPUs. Prefer instancing (`InstancedGroup`), atlases, compressed assets and simplified colliders.
+- Assets come from Blender as GLB into `static/`. Check scale, orientation, pivot, naming, collision needs and clip names, then run `npm run compress`; originals are kept alongside the `-compressed` versions.
+- Keep per-frame state inside the game runtime, not the DOM, and avoid allocations or DOM work in tick callbacks.
 - Validate with `npm run build` after structural changes.
-- Document new architectural decisions in `docs/` when they affect multiple systems.
