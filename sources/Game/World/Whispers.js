@@ -13,7 +13,9 @@ export class Whispers
     {
         this.game = Game.getInstance()
 
-        this.count = parseInt(import.meta.env.VITE_WHISPERS_COUNT)
+        // Fall back when the env var is missing: a NaN count breaks the instanced draw call
+        const envCount = parseInt(import.meta.env.VITE_WHISPERS_COUNT)
+        this.count = Number.isInteger(envCount) && envCount > 0 ? envCount : 30
 
         this.setSounds()
         this.setFlames()
