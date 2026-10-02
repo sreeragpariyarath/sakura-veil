@@ -224,8 +224,10 @@ export class View
             if(this.game.quality.level === 0)
                 radiusMax *= 1 - this.zoom.speedAmplitude
             
+            // Use a fixed reference pitch: with the live pitch, a level or upward camera's rays
+            // miss the floor plane and the fog near/far distances collapse (whole screen fogged to sky)
             const offset = new THREE.Vector3()
-            offset.setFromSphericalCoords(radiusMax, this.spherical.phi, this.spherical.theta)
+            offset.setFromSphericalCoords(radiusMax, this.spherical.optimalAreaPhi, this.spherical.theta)
 
             this.defaultCamera.position.set(0, 0, 0).add(offset)
             this.defaultCamera.lookAt(new THREE.Vector3())
@@ -336,7 +338,8 @@ export class View
         this.spherical = {}
         this.spherical.phi = Math.PI * 0.46
         // Above PI/2 the camera sits below the focus point and looks up at the sky
-        this.spherical.phiLimits = { min: Math.PI * 0.12, max: Math.PI * 0.66 }
+        this.spherical.phiLimits = { min: Math.PI * 0.12, max: Math.PI * 0.6 }
+        this.spherical.optimalAreaPhi = Math.PI * 0.42 // Pitch the fog/optimal area distances are tuned for
         this.spherical.groundClearance = 0.35
         this.spherical.theta = Math.PI * 0.25
 
