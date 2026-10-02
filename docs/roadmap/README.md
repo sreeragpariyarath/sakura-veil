@@ -4,6 +4,8 @@ The project is split into **phases**, each phase into **sub-phases**, and each s
 
 There is no 3D modeller on the team, so every model comes from free libraries (see [Free asset sources](#free-asset-sources)) and is adapted in Blender (scale, pivot, materials, merging) rather than modelled from scratch. Record every downloaded asset and its licence in `ASSET_CREDITS.md`.
 
+The game's story, chapters and where each piece of portfolio content appears: [docs/story/STORY.md](../story/STORY.md).
+
 Target look: the concept sheet (Rei turnaround and the sakura entrance screenshot). Target performance: see `phase-6-performance-release`.
 
 ## Phases
@@ -11,9 +13,9 @@ Target look: the concept sheet (Rei turnaround and the sakura entrance screensho
 | # | Phase | Goal | Status |
 |---|---|---|---|
 | 0 | [Foundation and controls](phase-0-foundation/README.md) | The game feels good to move around before any new art is added | In progress |
-| 1 | [Rei character](phase-1-rei/README.md) | Rei matches the concept turnaround | Not started |
+| 1 | [Rei character](phase-1-rei/README.md) | Rei matches the concept turnaround | Postponed (Rei model being reworked) |
 | 2 | [Sakura Entrance (vertical slice)](phase-2-sakura-entrance/README.md) | One small area that looks like the concept screenshot | Not started |
-| 3 | [Interaction and portfolio content](phase-3-interaction/README.md) | Locations reveal portfolio content | Not started |
+| 3 | [Interaction and portfolio content](phase-3-interaction/README.md) | The story chapters from [STORY.md](../story/STORY.md): StoryManager, bloom, Kitsu, Portfolio Mode | Not started |
 | 4 | [More areas](phase-4-areas/README.md) | Shrine, Spirit Path, Memory Garden, Archive, Project Chambers, Restored Core | Not started |
 | 5 | [Audio and UI](phase-5-audio-ui/README.md) | Ambient sound, SFX, restyled menus and loading screen | Not started |
 | 6 | [Performance and release](phase-6-performance-release/README.md) | Runs well on laptops and phones, deployed | Not started |
