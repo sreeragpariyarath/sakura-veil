@@ -334,7 +334,10 @@ export class View
     setSpherical()
     {
         this.spherical = {}
-        this.spherical.phi = Math.PI * 0.42
+        this.spherical.phi = Math.PI * 0.46
+        // Above PI/2 the camera sits below the focus point and looks up at the sky
+        this.spherical.phiLimits = { min: Math.PI * 0.12, max: Math.PI * 0.66 }
+        this.spherical.groundClearance = 0.35
         this.spherical.theta = Math.PI * 0.25
 
         this.spherical.radius = {}
@@ -351,7 +354,7 @@ export class View
                 title: 'Spherical',
                 expanded: false,
             })
-            sphericalDebugPanel.addBinding(this.spherical, 'phi', { min: 0, max: Math.PI * 0.5, step: 0.001 })
+            sphericalDebugPanel.addBinding(this.spherical, 'phi', { min: 0, max: Math.PI * 0.7, step: 0.001 })
             sphericalDebugPanel.addBinding(this.spherical, 'theta', { min: - Math.PI, max: Math.PI, step: 0.001 })
             sphericalDebugPanel.addBinding(this.spherical.radius, 'edges', { min: 0, max: 100, step: 0.001 })
         }
@@ -641,9 +644,10 @@ export class View
 
             if(movementX !== 0 || movementY !== 0)
             {
+                // Mouse up looks up (camera dips below the focus point, as in third-person games)
                 this.spherical.theta -= movementX * this.mouseControls.sensitivity
-                this.spherical.phi += movementY * this.mouseControls.sensitivity
-                this.spherical.phi = clamp(this.spherical.phi, 0.05, Math.PI * 0.48)
+                this.spherical.phi -= movementY * this.mouseControls.sensitivity
+                this.spherical.phi = clamp(this.spherical.phi, this.spherical.phiLimits.min, this.spherical.phiLimits.max)
             }
         })
     }
@@ -775,6 +779,14 @@ export class View
         const radiusMax = this.spherical.radius.edges.max + this.ratioOverflow * this.spherical.radius.nonIdealRatioOffset
         this.spherical.radius.current = lerp(this.spherical.radius.edges.min, radiusMax, 1 - this.zoom.smoothedRatio)
         this.spherical.offset.setFromSphericalCoords(this.spherical.radius.current, this.spherical.phi, this.spherical.theta)
+
+        // Keep the camera above the ground when looking up: pull it in toward the focus point instead
+        const focusY = this.focusPoint.smoothedPosition.y
+        if(this.spherical.offset.y < 0 && focusY + this.spherical.offset.y < this.spherical.groundClearance)
+        {
+            const scale = clamp((this.spherical.groundClearance - focusY) / this.spherical.offset.y, 0.15, 1)
+            this.spherical.offset.multiplyScalar(scale)
+        }
 
         // Position
         this.position.copy(this.focusPoint.smoothedPosition).add(this.spherical.offset)

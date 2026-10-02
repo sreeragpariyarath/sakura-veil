@@ -11,15 +11,17 @@ export class PhysicsFlight
 
         this.events = new Events()
 
-        this.engineForceAmplitude = 60
-        this.boostMultiplier = 2
         this.topSpeed = 8
         this.topSpeedBoost = 20
-        this.verticalForceAmplitude = 40
         this.turnSpeed = 2.4
         this.bankAmount = 0.5
         this.bankSmoothing = 6
-        this.gravityScale = 0.08
+        this.gravityScale = 0
+        this.acceleration = 5
+        this.deceleration = 7
+        this.climbSpeed = 6
+        this.verticalAcceleration = 6
+        this.maxAltitude = 40
 
         this.yaw = 0
         this.bank = 0
@@ -43,11 +45,12 @@ export class PhysicsFlight
                 expanded: true,
             })
 
-            this.debugPanel.addBinding(this, 'engineForceAmplitude', { min: 0, max: 100, step: 1 })
-            this.debugPanel.addBinding(this, 'boostMultiplier', { min: 1, max: 5, step: 0.01 })
             this.debugPanel.addBinding(this, 'topSpeed', { min: 0, max: 30, step: 0.1 })
             this.debugPanel.addBinding(this, 'topSpeedBoost', { min: 0, max: 30, step: 0.1 })
-            this.debugPanel.addBinding(this, 'verticalForceAmplitude', { min: 0, max: 100, step: 1 })
+            this.debugPanel.addBinding(this, 'acceleration', { min: 0.5, max: 20, step: 0.1 })
+            this.debugPanel.addBinding(this, 'deceleration', { min: 0.5, max: 20, step: 0.1 })
+            this.debugPanel.addBinding(this, 'climbSpeed', { min: 0, max: 20, step: 0.1 })
+            this.debugPanel.addBinding(this, 'verticalAcceleration', { min: 0.5, max: 20, step: 0.1 })
             this.debugPanel.addBinding(this, 'turnSpeed', { min: 0, max: 6, step: 0.01 })
             this.debugPanel.addBinding(this, 'bankAmount', { min: 0, max: 2, step: 0.01 })
             this.debugPanel.addBinding(this, 'bankSmoothing', { min: 0, max: 20, step: 0.01 })
@@ -85,7 +88,7 @@ export class PhysicsFlight
             position: this.position,
             friction: 0.4,
             restitution: 0.15,
-            linearDamping: 3,
+            linearDamping: 0, // Velocity is driven directly in updatePrePhysics
             angularDamping: 6,
             rotation: new THREE.Quaternion(),
             colliders: [
@@ -191,27 +194,36 @@ export class PhysicsFlight
         body.setRotation(targetQuaternion, true)
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
 
-        // Directional thrust
-        const thrust = new THREE.Vector3()
+        // Velocity-based steering: ease the current velocity toward a target velocity.
+        // Responsive to start/stop like third-person games, with no force/damping drift.
+        const delta = this.game.ticker.deltaScaled
+        const current = body.linvel()
+        const topSpeed = lerp(this.topSpeed, this.topSpeedBoost, this.game.player.boosting)
+
+        const target = new THREE.Vector3()
         if(this.game.player.isMoving)
-        {
-            const topSpeed = lerp(this.topSpeed, this.topSpeedBoost, this.game.player.boosting)
-            const engineForce = this.game.player.accelerating * (1 + this.game.player.boosting * this.boostMultiplier) * this.engineForceAmplitude
-            thrust.copy(this.game.player.moveVector).multiplyScalar(engineForce)
-        }
-        else
-        {
-            // Rapid linear velocity damping on stop (prevent vehicle sliding)
-            const curVel = body.linvel()
-            body.setLinvel({ x: curVel.x * 0.85, y: curVel.y, z: curVel.z * 0.85 }, true)
+            target.copy(this.game.player.moveVector).multiplyScalar(topSpeed * this.game.player.accelerating)
+
+        const horizontalRate = this.game.player.isMoving ? this.acceleration : this.deceleration
+        const horizontalBlend = 1 - Math.exp(- horizontalRate * delta)
+        const newVelocity = {
+            x: current.x + (target.x - current.x) * horizontalBlend,
+            y: 0,
+            z: current.z + (target.z - current.z) * horizontalBlend
         }
 
-        // Vertical thrust (ascend / descend)
+        // Vertical: input drives climb/descent, no input hovers in place
         const verticalInput = this.game.player.ascending - this.game.player.descending
-        thrust.y += verticalInput * this.verticalForceAmplitude
+        const verticalTarget = verticalInput * this.climbSpeed
+        const verticalBlend = 1 - Math.exp(- this.verticalAcceleration * delta)
+        newVelocity.y = current.y + (verticalTarget - current.y) * verticalBlend
+
+        // Ceiling
+        if(this.position.y > this.maxAltitude && newVelocity.y > 0)
+            newVelocity.y = 0
 
         body.resetForces(true)
-        body.addForce(thrust, true)
+        body.setLinvel(newVelocity, true)
     }
 
     updatePostPhysics()
