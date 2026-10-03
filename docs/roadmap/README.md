@@ -15,7 +15,7 @@ Target look: the concept sheet (Rei turnaround and the sakura entrance screensho
 | 0 | [Foundation and controls](phase-0-foundation/README.md) | The game feels good to move around before any new art is added | In progress |
 | 1 | [Rei character](phase-1-rei/README.md) | Rei matches the concept turnaround | Postponed (Rei model being reworked) |
 | 2 | [Sakura Entrance (vertical slice)](phase-2-sakura-entrance/README.md) | One small area that looks like the concept screenshot | Not started |
-| 3 | [Interaction and portfolio content](phase-3-interaction/README.md) | Five lanterns from [STORY.md](../story/STORY.md), each revealing one portfolio section | Not started |
+| 3 | [Interaction and portfolio content](phase-3-interaction/README.md) | Five festival lanterns from [STORY.md](../story/STORY.md), each revealing one portfolio section | Not started |
 | 4 | [More areas](phase-4-areas/README.md) | Shrine, Spirit Path, Memory Garden, Archive, Project Chambers, Restored Core | Not started |
 | 5 | [Audio and UI](phase-5-audio-ui/README.md) | Ambient sound, SFX, restyled menus and loading screen | Not started |
 | 6 | [Performance and release](phase-6-performance-release/README.md) | Runs well on laptops and phones, deployed | Not started |
