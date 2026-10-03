@@ -19,4 +19,7 @@ Original font files live in `resources/fonts/`; web copies (WOFF2) in `static/fo
 
 | Font | Source | Web copy | Notes |
 |---|---|---|---|
-| Ninja Kage (demo) | `resources/fonts/ninja-kage-demo/` | `static/fonts/ninja-kage/NinjaKageDemo-Regular.woff2` | Festival titles. Demo: letters only (digits and punctuation are empty, so `fonts.styl` limits it to letters and Georgia draws the rest). Free for personal use only; buy the full version for commercial use or to get digits. |
+| Ninja Kage (demo) | `resources/fonts/ninja-kage-demo/` | `static/fonts/ninja-kage/NinjaKageDemo-Regular.woff2` | Letters of the "Festival Brush" family. Demo: letters only. Free for personal use only; buy the full version for commercial use. |
+| Shojumaru | `resources/fonts/shojumaru/` (with `OFL.txt`) | `static/fonts/shojumaru/Shojumaru-Regular.woff2` | Digits and punctuation of "Festival Brush" (SIL Open Font License, free to use). |
+
+"Festival Brush" is defined in `sources/style/fonts.styl`: two `@font-face` rules with the same name, split by `unicode-range`, so all UI text can use one family.
