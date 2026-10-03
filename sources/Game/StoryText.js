@@ -1,7 +1,7 @@
 import { Game } from './Game.js'
 import { Modals } from './Modals.js'
 
-// Floating story lines of the Sakura Festival (docs/story/STORY.md).
+// Story lines of the Sakura Festival (docs/story/STORY.md), shown on a cherry blossom scroll.
 // One DOM element, CSS transitions only: nothing runs per frame.
 export class StoryText
 {
@@ -12,11 +12,20 @@ export class StoryText
 
         this.queue = []
         this.showing = false
-        this.holdDuration = 3200
-        this.fadeDuration = 600 // Matches the CSS transition
+        this.holdDuration = 3800
+        this.fadeDuration = 700 // Matches the CSS transition
 
         this.element = document.createElement('div')
         this.element.className = 'story-text'
+        this.element.innerHTML = /* html */`
+            <div class="scroll">
+                <div class="title"></div>
+                <div class="divider"><span></span></div>
+                <div class="subtitle"></div>
+            </div>
+        `
+        this.titleElement = this.element.querySelector('.title')
+        this.subtitleElement = this.element.querySelector('.subtitle')
         this.game.modals.element.before(this.element) // Below the cards in the stacking order
 
         this.setLanternsEvents()
@@ -30,18 +39,11 @@ export class StoryText
 
         // Returning visitors skip the welcome lines
         if(count === 0)
-        {
-            this.push('Welcome to the Sakura Festival!')
-            this.push('Light the five festival lanterns to begin the celebration.')
-        }
+            this.push('Welcome to the Sakura Festival!', 'Light the five festival lanterns to begin the celebration.')
         else if(count < total)
-        {
-            this.push(`Welcome back! ${count}/${total} lanterns glow.`)
-        }
+            this.push('Welcome back!', `${count} of ${total} lanterns glow. Find the others to begin the celebration.`)
         else
-        {
-            this.push('Welcome back to the festival!')
-        }
+            this.push('Welcome back to the festival!', 'All five lanterns glow. Enjoy the garden.')
 
         // Let the world appear first
         this.paused = true
@@ -57,12 +59,12 @@ export class StoryText
         this.lanterns.events.on('lit', (item, count, restored) =>
         {
             if(!restored)
-                this.push(`A lantern glows! (${count}/${this.lanterns.items.size})`)
+                this.push('A lantern glows!', `${count} of ${this.lanterns.items.size} lanterns lit`)
         })
 
         this.lanterns.events.on('finale', () =>
         {
-            this.push('The festival begins! Thank you for visiting.')
+            this.push('The festival begins!', 'Thank you for visiting.')
         })
 
         // Lines wait while a card is open
@@ -72,9 +74,9 @@ export class StoryText
         })
     }
 
-    push(line)
+    push(title, subtitle = '')
     {
-        this.queue.push(line)
+        this.queue.push({ title, subtitle })
         this.next()
     }
 
@@ -88,7 +90,10 @@ export class StoryText
             return
 
         this.showing = true
-        this.element.textContent = this.queue.shift()
+        const line = this.queue.shift()
+        this.titleElement.textContent = line.title
+        this.subtitleElement.textContent = line.subtitle
+        this.subtitleElement.style.display = line.subtitle ? '' : 'none'
         this.element.classList.add('is-visible')
 
         setTimeout(() =>
