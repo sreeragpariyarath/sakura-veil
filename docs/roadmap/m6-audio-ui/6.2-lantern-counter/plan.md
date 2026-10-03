@@ -1,0 +1,11 @@
+# 6.2 Lantern counter
+
+**Goal:** the player always knows how many lanterns are left.
+
+## Steps
+1. [ ] Small HUD: 5 lantern icons, lit ones glow (corner of the screen, mobile-safe).
+2. [ ] Update only on `lit` events, never per frame.
+3. [ ] Optional: show lantern markers on the existing `Map`.
+
+## Done when
+- [ ] The counter matches saved progress after reload.
