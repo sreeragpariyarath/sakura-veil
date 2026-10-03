@@ -11,7 +11,7 @@ There is no 3D modeller on the team, so every model comes from free libraries (s
 | # | Master phase | Goal | Status |
 |---|---|---|---|
 | M0 | [Foundation](m0-foundation/README.md) | Controls, camera and colours feel good; known errors fixed | In progress |
-| M1 | [Festival Garden](m1-festival-garden/README.md) | The single garden from the concept image, with 5 lantern spots | Not started |
+| M1 | [Festival Garden](m1-festival-garden/README.md) | A 250 × 250 m garden in five zones, each with a landmark and one hidden lantern | Not started |
 | M2 | [Lantern gameplay loop](m2-lantern-loop/README.md) | Fly → press E → lantern lights → card opens → progress saved | In progress |
 | M3 | [Portfolio content](m3-portfolio-content/README.md) | Real About / Experience / Skills / Projects / Contact cards | Waiting on content |
 | M4 | [Celebration](m4-celebration/README.md) | Festival level, petals, glow, confetti and the fireworks finale | Not started |

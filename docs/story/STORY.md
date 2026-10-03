@@ -17,9 +17,23 @@ Shown as small floating text:
 3. After each lantern: *"A lantern glows! (2/5)"*
 4. After the last one: *"The festival begins! Thank you for visiting."* and fireworks over the pagoda.
 
+## The garden: five zones
+
+One big garden (about 250 × 250 m, about 30 s to cross even with boost), split into five zones. Each zone has a landmark and hides one lantern, so finding all five is a real tour.
+
+| Zone | Landmark | Lantern |
+|---|---|---|
+| Sakura Grove (start) | Big sakura trees, stone path | About me |
+| River Crossing | Turquoise river, red arched bridge | Experience (under or beside the bridge) |
+| Torii Path | A row of torii gates up stone stairs | Skills |
+| Koi Pond | Pond with stepping stones, rocks | Projects |
+| Pagoda Hill | Pagoda on the hilltop | Contact (finale and fireworks here) |
+
+Between the zones there is something worth flying to: tall trees to fly through, the river to follow, the hill to climb. Small optional secrets (a fox statue, a wind chime) can come later.
+
 ## How it plays
 
-- 5 lanterns stand around the map, each with a soft glow and a floating marker so they're easy to find.
+- 5 lanterns are hidden around the garden, one per zone, behind trees, by the bridge or up on the hill. Each has a soft glow and a floating marker so it can be spotted from far away.
 - Fly to a lantern and press **E**. It lights up with a burst of petals and sparkles, and opens one portfolio card.
 - Each lit lantern adds a little celebration to the world: more falling petals, warm lantern light, an extra layer of festival music.
 - When all 5 are lit: fireworks over the pagoda, a big petal shower, and the final line.

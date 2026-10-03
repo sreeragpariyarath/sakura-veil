@@ -8,13 +8,13 @@ import { InteractivePoints } from '../InteractivePoints.js'
 // Each one opens one portfolio card; lighting all five starts the celebration.
 export class Lanterns
 {
-    // Placeholder positions in a ring around the spawn, on dry ground, so some are in view whichever way the camera faces
+    // Placeholder positions, one per future zone (docs/roadmap/m1-festival-garden), 40–80 m from the spawn on dry ground
     static ITEMS = [
-        { id: 'about',      label: 'About me',   position: new THREE.Vector3(3, 0, 9),     rotation: 0.4 },
-        { id: 'experience', label: 'Experience', position: new THREE.Vector3(- 11, 0, - 9), rotation: 2.1 },
-        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(15, 0, - 11), rotation: 4.0 },
-        { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(- 9, 0, 20),  rotation: 1.2 },
-        { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(4, 0, - 26),  rotation: 3.1 },
+        { id: 'about',      label: 'About me',   position: new THREE.Vector3(- 40, 0, 10),  rotation: 0.4 }, // Sakura Grove
+        { id: 'experience', label: 'Experience', position: new THREE.Vector3(45, 0, - 45),  rotation: 2.1 }, // River Crossing
+        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(- 65, 0, - 50), rotation: 4.0 }, // Torii Path
+        { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(50, 0, 40),    rotation: 1.2 }, // Koi Pond
+        { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(- 15, 0, 65),  rotation: 3.1 }, // Pagoda Hill
     ]
 
     constructor()
