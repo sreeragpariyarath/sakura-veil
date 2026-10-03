@@ -35,9 +35,17 @@ export class LanternCounter
 
         this.update()
 
-        this.lanterns.events.on('lit', () =>
+        this.lanterns.events.on('lit', (item, count, restored) =>
         {
             this.update()
+
+            // Small bump on the number when a lantern is newly lit
+            if(!restored)
+            {
+                this.label.classList.remove('is-bump')
+                void this.label.offsetWidth // Restart the animation
+                this.label.classList.add('is-bump')
+            }
         })
 
         // Fade in once the world has appeared, not instantly

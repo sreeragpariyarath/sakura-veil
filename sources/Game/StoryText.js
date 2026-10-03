@@ -14,7 +14,7 @@ export class StoryText
         this.queue = []
         this.showing = false
         this.holdDuration = 3800
-        this.fadeDuration = 1100 // Matches the CSS fade-out transition
+        this.fadeDuration = 1200 // Covers the CSS roll-up and fade-out (lanterns.styl)
 
         this.element = document.createElement('div')
         this.element.className = 'story-text'
