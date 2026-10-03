@@ -20,6 +20,7 @@ import { Intro } from './Intro.js'
 import { PoleLights } from './PoleLights.js'
 import { Scenery } from './Scenery.js'
 import { SakuraTrees } from './SakuraTrees.js'
+import { Lanterns } from './Lanterns.js'
 
 export class World
 {
@@ -74,6 +75,7 @@ export class World
             this.poleLights = safe('poleLights', () => new PoleLights())
             this.scenery = safe('scenery', () => new Scenery())
             this.sakuraTrees = safe('sakuraTrees', () => new SakuraTrees())
+            this.lanterns = safe('lanterns', () => new Lanterns())
             this.areas = safe('areas', () => new Areas())
         }
         else if(step === 2)

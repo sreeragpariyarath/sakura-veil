@@ -6,7 +6,7 @@ Built first on the current map with placeholder positions, then moved onto the `
 
 | Sub-phase | Plan | Status |
 |---|---|---|
-| 2.1 `Lanterns.js` and placement | [plan](2.1-lanterns-system/plan.md) | Not started |
+| 2.1 `Lanterns.js` and placement | [plan](2.1-lanterns-system/plan.md) | Done |
 | 2.2 Interaction and card opening | [plan](2.2-interaction/plan.md) | Not started |
 | 2.3 Lit state | [plan](2.3-lit-state/plan.md) | Not started |
 | 2.4 Saved progress | [plan](2.4-progress/plan.md) | Not started |
