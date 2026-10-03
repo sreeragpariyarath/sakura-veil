@@ -332,6 +332,7 @@ export class InteractivePoints
          * Item
          */
         const item = {}
+        item.group = group
         item.position = new THREE.Vector2(position.x, position.z)
         item.positionY = position.y
         item.interactCallback = interactCallback
@@ -576,6 +577,12 @@ export class InteractivePoints
 
     update()
     {
+        // Billboard: the original fixed 45° orientation suited the isometric driving camera,
+        // but the free third-person camera often saw the labels from behind (back-face culled)
+        const cameraQuaternion = this.game.view.camera.quaternion
+        for(const item of this.items)
+            item.group.quaternion.copy(cameraQuaternion)
+
         // Player testing (not cursor intersect)
         const distanceTraveled = Math.hypot(
             this.playerPosition.value.x - this.game.player.position2.x,

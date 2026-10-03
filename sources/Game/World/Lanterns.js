@@ -2,16 +2,17 @@ import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
 import { Events } from '../Events.js'
 import { References } from '../References.js'
+import { InteractivePoints } from '../InteractivePoints.js'
 
 // The five festival lanterns of the Sakura Festival story (docs/story/STORY.md).
 // Each one opens one portfolio card; lighting all five starts the celebration.
 export class Lanterns
 {
-    // Placeholder positions in a ring around the spawn, so some are in view whichever way the camera faces
+    // Placeholder positions in a ring around the spawn, on dry ground, so some are in view whichever way the camera faces
     static ITEMS = [
         { id: 'about',      label: 'About me',   position: new THREE.Vector3(3, 0, 9),     rotation: 0.4 },
         { id: 'experience', label: 'Experience', position: new THREE.Vector3(- 11, 0, - 9), rotation: 2.1 },
-        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(13, 0, - 5),  rotation: 4.0 },
+        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(15, 0, - 11), rotation: 4.0 },
         { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(- 9, 0, 20),  rotation: 1.2 },
         { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(4, 0, - 26),  rotation: 3.1 },
     ]
@@ -116,10 +117,13 @@ export class Lanterns
                 id: placement.id,
                 label: placement.label,
                 position: placement.position,
+                modal: `lantern-${placement.id}`,
                 object,
                 lit: false,
             }
             this.items.set(item.id, item)
+
+            this.setInteractivePoint(item)
 
             if(this.debugPanel)
             {
@@ -130,9 +134,31 @@ export class Lanterns
         }
     }
 
+    setInteractivePoint(item)
+    {
+        // "Press E" label floating above the lamp; opens the lantern's card (`.js-modal` in index.html)
+        item.interactivePoint = this.game.interactivePoints.create(
+            item.position.clone().add(new THREE.Vector3(0, this.height + 0.8, 0)),
+            item.label,
+            InteractivePoints.ALIGN_LEFT,
+            InteractivePoints.STATE_CONCEALED,
+            () =>
+            {
+                this.game.modals.open(item.modal)
+                this.events.trigger('interact', [ item ])
+            }
+        )
+    }
+
     updatePosition(item)
     {
         item.object.physical.body.setTranslation(item.position, true)
         item.object.visual.object3D.position.copy(item.position)
+
+        const point = item.interactivePoint
+        point.position.set(item.position.x, item.position.z)
+        point.group.position.x = item.position.x
+        point.group.position.z = item.position.z
+        this.game.interactivePoints.needsTest = true
     }
 }
