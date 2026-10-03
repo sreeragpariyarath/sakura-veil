@@ -21,6 +21,8 @@ import { PoleLights } from './PoleLights.js'
 import { Scenery } from './Scenery.js'
 import { SakuraTrees } from './SakuraTrees.js'
 import { Lanterns } from './Lanterns.js'
+import { StoryText } from '../StoryText.js'
+import { LanternCounter } from '../LanternCounter.js'
 
 export class World
 {
@@ -76,6 +78,11 @@ export class World
             this.scenery = safe('scenery', () => new Scenery())
             this.sakuraTrees = safe('sakuraTrees', () => new SakuraTrees())
             this.lanterns = safe('lanterns', () => new Lanterns())
+            if(this.lanterns)
+            {
+                this.storyText = safe('storyText', () => new StoryText())
+                this.lanternCounter = safe('lanternCounter', () => new LanternCounter())
+            }
             this.areas = safe('areas', () => new Areas())
         }
         else if(step === 2)
