@@ -1,4 +1,6 @@
 import * as THREE from 'three/webgpu'
+import { color, float, mix, uniform, uv, vec4 } from 'three/tsl'
+import gsap from 'gsap'
 import { Game } from '../Game.js'
 import { Events } from '../Events.js'
 import { References } from '../References.js'
@@ -37,9 +39,33 @@ export class Lanterns
         this.height = 2.6 // Lantern height in metres
         this.items = new Map()
 
+        this.markerColor = uniform(color('#ff7eb6'))
+        this.lightColor = uniform(color('#ffb347'))
+
         this.setBase()
+        this.setGlowGeometries()
         this.setPlacements()
         this.setItems()
+
+        this.game.ticker.events.on('tick', () =>
+        {
+            this.update()
+        }, 10)
+
+        if(this.debugPanel)
+        {
+            this.game.debug.addThreeColorBinding(this.debugPanel, this.markerColor.value, 'markerColor')
+            this.game.debug.addThreeColorBinding(this.debugPanel, this.lightColor.value, 'lightColor')
+        }
+    }
+
+    setGlowGeometries()
+    {
+        // Light box wrapping the lamp's glass (the lamp GLB is one mesh, so the light is added in code).
+        // Measured on japan_old_lamp.glb: glass spans 77.5–87.5% of the height, half-width ≈ 6.6% of the height
+        const halfWidth = this.height * 0.066 * 1.04 // Just outside the glass so it shows through
+        this.lightBoxGeometry = new THREE.BoxGeometry(halfWidth * 2, this.height * 0.096, halfWidth * 2)
+        this.lightBoxY = this.height * 0.825
     }
 
     setBase()
@@ -120,9 +146,12 @@ export class Lanterns
                 modal: `lantern-${placement.id}`,
                 object,
                 lit: false,
+                litProgress: uniform(0),
+                bobOffset: Math.random() * Math.PI * 2,
             }
             this.items.set(item.id, item)
 
+            this.setGlow(item)
             this.setInteractivePoint(item)
 
             if(this.debugPanel)
@@ -131,6 +160,87 @@ export class Lanterns
                 folder.addBinding(item.position, 'x', { min: - 100, max: 100, step: 0.1 }).on('change', () => this.updatePosition(item))
                 folder.addBinding(item.position, 'z', { min: - 140, max: 140, step: 0.1 }).on('change', () => this.updatePosition(item))
             }
+        }
+    }
+
+    setGlow(item)
+    {
+        // Added after Objects.add() so materials.updateObject() doesn't convert these unlit materials
+        item.effects = new THREE.Group()
+        item.effects.position.copy(item.position)
+        this.game.scene.add(item.effects)
+
+        // Warm light over the glass, faded in when lit (invisible while unlit so the lamp keeps its look)
+        const lightMaterial = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false })
+        lightMaterial.outputNode = vec4(mix(this.lightColor, color('#fff4d6'), 0.35), item.litProgress)
+        const lightBox = new THREE.Mesh(this.lightBoxGeometry, lightMaterial)
+        lightBox.position.y = this.lightBoxY
+        item.effects.add(lightBox)
+
+        // Halo around the lamp head, only once lit
+        const haloMaterial = new THREE.SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+        const haloStrength = float(1).sub(uv().sub(0.5).length().mul(2)).clamp(0, 1).pow(2)
+        haloMaterial.outputNode = vec4(this.lightColor, haloStrength.mul(item.litProgress))
+        const halo = new THREE.Sprite(haloMaterial)
+        halo.position.y = this.lightBoxY
+        halo.scale.setScalar(2.2)
+        item.effects.add(halo)
+
+        // Marker floating above unlit lanterns: fixed screen size and no fog, so it can be spotted from far away
+        const markerMaterial = new THREE.SpriteNodeMaterial({ transparent: true, depthWrite: false, sizeAttenuation: false })
+        const markerDistance = uv().sub(0.5).length().mul(2)
+        const markerCore = float(1).sub(markerDistance.mul(2.5)).clamp(0, 1)
+        const markerGlow = float(1).sub(markerDistance).clamp(0, 1).pow(2)
+        markerMaterial.outputNode = vec4(mix(this.markerColor, color('#ffffff'), markerCore), markerGlow.add(markerCore).clamp(0, 1))
+        item.marker = new THREE.Sprite(markerMaterial)
+        item.marker.position.y = this.height + 1.6
+        item.marker.scale.setScalar(0.035)
+        item.marker.renderOrder = 5
+        item.effects.add(item.marker)
+    }
+
+    light(item, animate = true)
+    {
+        if(item.lit)
+            return
+
+        item.lit = true
+
+        if(animate)
+        {
+            gsap.to(item.litProgress, { value: 1, duration: 1.2, ease: 'power2.out' })
+            gsap.to(item.marker.scale, { x: 0, y: 0, z: 0, duration: 0.5, ease: 'back.in(2)', onComplete: () => { item.marker.visible = false } })
+
+            if(this.game.world.confetti)
+                this.game.world.confetti.pop(item.position.clone().add(new THREE.Vector3(0, this.lightBoxY, 0)))
+        }
+        else
+        {
+            item.litProgress.value = 1
+            item.marker.visible = false
+        }
+
+        this.events.trigger('lit', [ item, this.getLitCount() ])
+    }
+
+    getLitCount()
+    {
+        let count = 0
+        for(const item of this.items.values())
+            if(item.lit)
+                count++
+
+        return count
+    }
+
+    update()
+    {
+        // Gentle bob of the unlit markers (no allocations)
+        const time = this.game.ticker.elapsedScaled
+        for(const item of this.items.values())
+        {
+            if(item.marker.visible)
+                item.marker.position.y = this.height + 1.6 + Math.sin(time * 1.5 + item.bobOffset) * 0.15
         }
     }
 
@@ -145,6 +255,7 @@ export class Lanterns
             () =>
             {
                 this.game.modals.open(item.modal)
+                this.light(item)
                 this.events.trigger('interact', [ item ])
             }
         )
@@ -154,6 +265,7 @@ export class Lanterns
     {
         item.object.physical.body.setTranslation(item.position, true)
         item.object.visual.object3D.position.copy(item.position)
+        item.effects.position.copy(item.position)
 
         const point = item.interactivePoint
         point.position.set(item.position.x, item.position.z)
