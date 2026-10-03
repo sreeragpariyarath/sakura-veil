@@ -1,14 +1,11 @@
 import { Game } from './Game.js'
 
-// Five lantern icons showing how many festival lanterns are lit. Updated on `lit` events only.
+// Lantern progress bar (image: static/images/ui/lantern-progress-bar.webp). The five lanterns are painted
+// in the image; lit ones get a warm glow on top. Updated on `lit` events only.
 export class LanternCounter
 {
-    static ICON = /* html */`
-        <svg viewBox="0 0 24 32" aria-hidden="true">
-            <path class="roof" d="M3 9 L12 3 L21 9 Z" />
-            <rect class="glass" x="7" y="10" width="10" height="11" rx="1.5" />
-            <rect class="post" x="10.5" y="21" width="3" height="9" />
-        </svg>`
+    // Centre of each painted lantern's glass, in % of the trimmed image (measured on lantern-progress-bar.webp)
+    static LANTERN_X = [ 24.4, 35.7, 46.3, 57.6, 69.2 ]
 
     constructor()
     {
@@ -19,15 +16,17 @@ export class LanternCounter
         this.element.className = 'lantern-counter'
         this.game.modals.element.before(this.element)
 
-        this.icons = new Map()
+        this.glows = new Map()
+        let index = 0
         for(const item of this.lanterns.items.values())
         {
-            const icon = document.createElement('div')
-            icon.className = 'icon'
-            icon.title = item.label
-            icon.innerHTML = LanternCounter.ICON
-            this.element.append(icon)
-            this.icons.set(item.id, icon)
+            const glow = document.createElement('div')
+            glow.className = 'glow'
+            glow.title = item.label
+            glow.style.left = `${LanternCounter.LANTERN_X[index]}%`
+            this.element.append(glow)
+            this.glows.set(item.id, glow)
+            index++
         }
 
         this.label = document.createElement('div')
@@ -40,12 +39,15 @@ export class LanternCounter
         {
             this.update()
         })
+
+        // Fade in once the world has appeared, not instantly
+        setTimeout(() => this.element.classList.add('is-visible'), 2500)
     }
 
     update()
     {
         for(const item of this.lanterns.items.values())
-            this.icons.get(item.id).classList.toggle('is-lit', item.lit)
+            this.glows.get(item.id).classList.toggle('is-lit', item.lit)
 
         this.label.textContent = `${this.lanterns.getLitCount()}/${this.lanterns.items.size}`
     }

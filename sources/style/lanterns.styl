@@ -24,26 +24,29 @@
         .text
             line-height 1.6
 
-// Story lines on the cherry blossom scroll (StoryText.js, image: static/images/ui/scroll-banner.webp)
+// Story lines (StoryText.js): scroll for big moments, single-line banner for short updates
 .story-text
     position fixed
-    top 70px
+    top 90px
     left 50%
     width @css{ min(620px, calc(100vw - 24px)) }
     aspect-ratio 2 / 1
     pointer-events none
     opacity 0
-    transform translateX(-50%) scale(0.6, 0.85)
-    transition opacity 0.7s, transform 0.7s cubic-bezier(0.3, 1.4, 0.6, 1)
+    filter blur(6px)
+    transform translate(-50%, -14px)
+    transition opacity 1.1s ease, filter 1.1s ease, transform 1.1s ease
 
     &.is-visible
         opacity 1
-        transform translateX(-50%) scale(1, 1)
+        filter blur(0)
+        transform translate(-50%, 0)
+        transition-duration 1.3s
 
     @media only screen and (max-width 520px)
-        top 120px // Below the lantern counter and the menu buttons
+        top 140px // Below the lantern counter and the menu buttons
 
-    .scroll
+    .frame
         display flex
         flex-direction column
         align-items center
@@ -89,51 +92,93 @@
         font-size @css{ clamp(0.72rem, 2.8vw, 0.95rem) }
         line-height 1.35
 
-// Lantern counter HUD (LanternCounter.js)
+    // Single-line banner (banner-single-line.webp, 900 × 255; paper from 12% to 91% wide, 25% to 68% high)
+    &.is-banner
+        width @css{ min(480px, calc(100vw - 24px)) }
+        aspect-ratio 900 / 255
+
+        .frame
+            flex-direction row
+            gap 0.6em
+            padding 0 10% 2% 15%
+            background-image url('/images/ui/banner-single-line.webp')
+
+        .divider
+            display none
+
+        .title
+            font-size @css{ clamp(0.9rem, 3.6vw, 1.25rem) }
+            white-space nowrap
+
+        .subtitle
+            font-size @css{ clamp(0.8rem, 3vw, 1.05rem) }
+            font-weight 700
+            white-space nowrap
+
+            &::before
+                content '·'
+                margin-right 0.6em
+
+// Lantern progress bar (LanternCounter.js, lantern-progress-bar.webp, 900 × 173)
 .lantern-counter
     position fixed
-    top 20px
-    left 20px
-    display flex
-    align-items center
-    gap 4px
-    padding 6px 12px 6px 8px
-    border-radius 2rem
-    background rgba(255, 248, 240, 0.8)
+    top 14px
+    left 10px
+    width @css{ min(340px, calc(100vw - 80px)) }
+    aspect-ratio 900 / 173
+    background url('/images/ui/lantern-progress-bar.webp') center / 100% 100% no-repeat
+    filter drop-shadow(0 4px 10px rgba(120, 30, 50, 0.25))
     pointer-events none
+    opacity 0
+    transform translateY(-10px)
+    transition opacity 1.4s ease, transform 1.4s ease
 
-    .icon
-        width 20px
-        height 27px
+    &.is-visible
+        opacity 1
+        transform translateY(0)
 
-        svg
-            width 100%
-            height 100%
-
-        .roof
-        .post
-            fill #6b4a5a
-            opacity 0.45
-
-        .glass
-            fill #ffffff
-            stroke #6b4a5a
-            stroke-width 1
-            opacity 0.6
-            transition fill 0.6s, opacity 0.6s, filter 0.6s
+    // Warm light over a painted lantern's glass
+    .glow
+        position absolute
+        top 38.5%
+        width 9%
+        aspect-ratio 1
+        border-radius 50%
+        background radial-gradient(circle, rgba(255, 236, 170, 1) 0%, rgba(255, 170, 60, 0.85) 35%, rgba(255, 120, 40, 0) 70%)
+        mix-blend-mode screen
+        opacity 0
+        transform translate(-50%, -50%) scale(0.4)
+        transition opacity 1.2s ease, transform 1.2s cubic-bezier(0.3, 1.6, 0.6, 1)
 
         &.is-lit
-            .roof
-            .post
-                opacity 1
+            opacity 1
+            transform translate(-50%, -50%) scale(1)
 
-            .glass
-                fill #ffb347
-                opacity 1
-                filter drop-shadow(0 0 3px #ffb347)
-
+    // Count on the plaque (80.9–97.7% wide, 23–68% high)
     .label
-        margin-left 6px
-        color #3a2a33
+        position absolute
+        left 80.9%
+        top 23.4%
+        width 16.8%
+        height 44%
+        display flex
+        align-items center
+        justify-content center
+        font-family Georgia, "Times New Roman", serif
         font-weight 700
-        font-size 0.9rem
+        font-size @css{ clamp(0.85rem, 3.4vw, 1.3rem) }
+        color #8c1d3a
+
+// Music button (FestivalMusic.js), same look as the map button, one slot lower
+.music-trigger
+    top 120px
+
+    .music-icon
+        width 22px
+        height 22px
+
+        .slash
+            transition opacity 0.3s
+
+    &.is-playing .music-icon .slash
+        opacity 0

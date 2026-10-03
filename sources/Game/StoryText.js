@@ -1,7 +1,8 @@
 import { Game } from './Game.js'
 import { Modals } from './Modals.js'
 
-// Story lines of the Sakura Festival (docs/story/STORY.md), shown on a cherry blossom scroll.
+// Story lines of the Sakura Festival (docs/story/STORY.md): big moments on the cherry blossom scroll,
+// short updates on the single-line banner (images in static/images/ui/).
 // One DOM element, CSS transitions only: nothing runs per frame.
 export class StoryText
 {
@@ -13,12 +14,12 @@ export class StoryText
         this.queue = []
         this.showing = false
         this.holdDuration = 3800
-        this.fadeDuration = 700 // Matches the CSS transition
+        this.fadeDuration = 1100 // Matches the CSS fade-out transition
 
         this.element = document.createElement('div')
         this.element.className = 'story-text'
         this.element.innerHTML = /* html */`
-            <div class="scroll">
+            <div class="frame">
                 <div class="title"></div>
                 <div class="divider"><span></span></div>
                 <div class="subtitle"></div>
@@ -41,7 +42,7 @@ export class StoryText
         if(count === 0)
             this.push('Welcome to the Sakura Festival!', 'Light the five festival lanterns to begin the celebration.')
         else if(count < total)
-            this.push('Welcome back!', `${count} of ${total} lanterns glow. Find the others to begin the celebration.`)
+            this.push('Welcome back!', `${count} of ${total} lanterns glow`, 'banner')
         else
             this.push('Welcome back to the festival!', 'All five lanterns glow. Enjoy the garden.')
 
@@ -59,7 +60,7 @@ export class StoryText
         this.lanterns.events.on('lit', (item, count, restored) =>
         {
             if(!restored)
-                this.push('A lantern glows!', `${count} of ${this.lanterns.items.size} lanterns lit`)
+                this.push('A lantern glows!', `${count} of ${this.lanterns.items.size}`, 'banner')
         })
 
         this.lanterns.events.on('finale', () =>
@@ -74,9 +75,9 @@ export class StoryText
         })
     }
 
-    push(title, subtitle = '')
+    push(title, subtitle = '', style = 'scroll')
     {
-        this.queue.push({ title, subtitle })
+        this.queue.push({ title, subtitle, style })
         this.next()
     }
 
@@ -94,6 +95,7 @@ export class StoryText
         this.titleElement.textContent = line.title
         this.subtitleElement.textContent = line.subtitle
         this.subtitleElement.style.display = line.subtitle ? '' : 'none'
+        this.element.classList.toggle('is-banner', line.style === 'banner')
         this.element.classList.add('is-visible')
 
         setTimeout(() =>

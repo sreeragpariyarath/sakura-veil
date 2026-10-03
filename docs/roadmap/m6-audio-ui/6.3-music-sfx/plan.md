@@ -12,3 +12,7 @@
 
 ## Done when
 - [ ] At 0 lanterns the garden is calm; at 5 it sounds like a festival.
+
+## Progress
+- [x] First festival track (`static/sounds/musics/festival-bgm-1.mp3`) with a play/pause button under the map button (`FestivalMusic.js`): 2 s fade in, 1 s fade out, choice remembered.
+- [ ] Layers that follow the festival level, ambience and SFX (steps above).
