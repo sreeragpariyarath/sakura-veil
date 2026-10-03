@@ -1,28 +1,72 @@
-// Festival lantern cards: light paper look to match the bright festival (final design in roadmap M3.2)
+// Festival lantern cards on the card frame (static/images/ui/card-frame.webp, 1400 × 677), as a 9-slice border image:
+// corners keep their size (including the painted ✕); a clean 8 px band (y 357–365, inserted by
+// scripts/card-frame-band.cjs) stretches so longer text makes the card taller. Past the screen height the body scrolls.
+// --w is the card width; --u is one image pixel at that width.
 .lantern-card
-    .content
-        width 520px
-        max-width calc(100vw - 40px)
-        color #3a2a33
-        background linear-gradient(#fff8f0, #ffeef3)
-        border-top 6px solid #e8506e
-        border-radius 6px
+    .container
+        --w @css{ min(760px, calc(100vw - 24px)) }
+        --u @css{ calc(var(--w) / 1400) }
 
+    .content
+        position relative
+        width var(--w)
+        min-height @css{ calc(var(--u) * 677) }
+        // Text stays on the paper, clear of the corner flowers (top-left to x 290) and the right-side flowers (from x 1170)
+        padding @css{ calc(var(--u) * 115) calc(var(--u) * 230) calc(var(--u) * 150) calc(var(--u) * 290) }
+        color #4a2530
+        background none
+        border-style solid
+        border-color transparent
+        border-width 1px // The art is painted by border-image-width over the whole card, not inside thick borders
+        border-image @css{ url('/images/ui/card-frame.webp') 357 250 312 330 fill / calc(var(--u) * 357) calc(var(--u) * 250) calc(var(--u) * 312) calc(var(--u) * 330) stretch }
+        box-sizing border-box
+
+        > *
+            position relative
+            z-index 1
+
+        // Scrolls inside the paper when the text is taller than the screen allows
+        .card-body
+            max-height @css{ calc(100vh - 40px - var(--u) * 265) }
+            overflow-y auto
+            scrollbar-width thin
+            scrollbar-color #c2304f transparent
+
+        // Invisible button over the painted ✕ (centre 1260, 137; about 90 px)
         .close
-            filter invert(0.75)
+            position absolute
+            top @css{ calc(var(--u) * 92) }
+            right @css{ calc(var(--u) * 95) }
+            width @css{ calc(var(--u) * 90) }
+            height @css{ calc(var(--u) * 90) }
+            opacity 1
+            transform rotate(45deg)
+            border-radius @css{ calc(var(--u) * 10) }
+
+            .icon
+                display none
+
+            html:not(.is-mode-touch) &:hover
+                background rgba(255, 255, 255, 0.25)
 
         .kicker
-            font-size 0.9rem
-            letter-spacing 0.1em
-            text-transform uppercase
-            color #e8506e
+            font-family "Festival Brush", Georgia, serif
+            font-size @css{ clamp(0.75rem, calc(var(--u) * 30), 1rem) }
+            letter-spacing 0.06em
+            color #c2304f
 
         .title
-            font-size 2.4rem
-            margin 0.2rem 0 1rem 0
+            font-family "Festival Brush", Georgia, serif
+            font-size @css{ clamp(1.5rem, calc(var(--u) * 78), 2.6rem) } // Scales with the card on phones
+            font-weight 400
+            line-height 1.1
+            color #8c1d3a
+            margin 0.1rem 0 0.8rem 0
 
         .text
-            line-height 1.6
+            font-family Georgia, "Times New Roman", serif
+            font-size @css{ clamp(0.85rem, calc(var(--u) * 30), 1.05rem) }
+            line-height 1.65
 
 // Story lines (StoryText.js): scroll for big moments, single-line banner for short updates.
 // Sizes use container units (cqw = 1% of the frame width) so text scales with the artwork.
