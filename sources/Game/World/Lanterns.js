@@ -7,13 +7,13 @@ import { References } from '../References.js'
 // Each one opens one portfolio card; lighting all five starts the celebration.
 export class Lanterns
 {
-    // Placeholder positions in front of the spawn (the start camera looks towards +z)
+    // Placeholder positions in a ring around the spawn, so some are in view whichever way the camera faces
     static ITEMS = [
-        { id: 'about',      label: 'About me',   position: new THREE.Vector3(- 6, 0, 10),  rotation: 0.4 },
-        { id: 'experience', label: 'Experience', position: new THREE.Vector3(10, 0, 22),  rotation: 2.1 },
-        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(- 10, 0, 36), rotation: 4.0 },
-        { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(8, 0, 50),   rotation: 1.2 },
-        { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(0, 0, 66),   rotation: 3.1 },
+        { id: 'about',      label: 'About me',   position: new THREE.Vector3(3, 0, 9),     rotation: 0.4 },
+        { id: 'experience', label: 'Experience', position: new THREE.Vector3(- 11, 0, - 9), rotation: 2.1 },
+        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(13, 0, - 5),  rotation: 4.0 },
+        { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(- 9, 0, 20),  rotation: 1.2 },
+        { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(4, 0, - 26),  rotation: 3.1 },
     ]
 
     constructor()
@@ -33,7 +33,7 @@ export class Lanterns
             })
         }
 
-        this.height = 2.2 // Lantern height in metres
+        this.height = 2.6 // Lantern height in metres
         this.items = new Map()
 
         this.setBase()

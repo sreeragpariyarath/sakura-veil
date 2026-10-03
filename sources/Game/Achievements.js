@@ -440,13 +440,7 @@ export class Achievements
                     this.globalProgress.update()
                     this.rewards.update()
 
-                    // Confetti
-                    if(this.game.world.confetti)
-                    {
-                        this.game.world.confetti.pop(this.game.player.position.clone())
-                        this.game.world.confetti.pop(this.game.player.position.clone().add(new THREE.Vector3(1, -1, 1.5)))
-                        this.game.world.confetti.pop(this.game.player.position.clone().add(new THREE.Vector3(1, -1, -1.5)))
-                    }
+                    // No confetti here: in the Sakura Festival confetti is reserved for lighting lanterns
 
                     // Sound
                     this.sounds.achieve.play()
