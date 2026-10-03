@@ -2,8 +2,8 @@ import { Howl } from 'howler'
 import { Game } from './Game.js'
 
 // Festival background music with a play/pause button under the map button.
-// The choice is remembered; browsers only allow audio after a user gesture, so a remembered "on"
-// starts on the first click or key press.
+// On by default: browsers only allow audio after a user gesture, so it starts on the first click or key press.
+// Turning it off with the button is remembered.
 export class FestivalMusic
 {
     static STORAGE_KEY = 'sakura-veil-music'
@@ -123,11 +123,11 @@ export class FestivalMusic
     {
         try
         {
-            return localStorage.getItem(FestivalMusic.STORAGE_KEY) === 'on'
+            return localStorage.getItem(FestivalMusic.STORAGE_KEY) !== 'off'
         }
         catch(error)
         {
-            return false
+            return true
         }
     }
 
