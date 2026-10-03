@@ -11,6 +11,7 @@
 4. [ ] Add a small `.env.example` documenting every `VITE_*` variable with safe defaults.
 5. [ ] Remove the `VITE_DAY_CYCLE_PROGRESS` mention or wire it into `DayCycles` like `YearCycles`.
 6. [ ] Console must be free of errors and warnings on load.
+7. [ ] Guard the unguarded `localStorage` reads in `Server.js` and `Player.js` (the game fails to start when the browser blocks storage).
 
 ## Done when
 - [ ] No console errors; `World.step` logs no "failed to construct" messages.

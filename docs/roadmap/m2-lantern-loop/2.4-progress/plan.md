@@ -5,10 +5,13 @@
 **Files:** `sources/Game/World/Lanterns.js`.
 
 ## Steps
-1. [ ] Store the list of lit ids in `localStorage` (key `sakura-veil-lanterns`), every read/write in try/catch.
-2. [ ] On load, restore lit lanterns instantly (no burst, no sound).
-3. [ ] Add a debug button "Reset lanterns" under `#debug`.
-4. [ ] Test in a private window: the game must work with storage unavailable.
+1. [x] Store the list of lit ids in `localStorage` (key `sakura-veil-lanterns`), every read/write in try/catch.
+2. [x] On load, restore lit lanterns instantly (no burst, no sound).
+3. [x] Add a debug button "Reset lanterns" under `#debug`.
+4. [x] Test in a private window: the game must work with storage unavailable.
 
 ## Done when
-- [ ] Reloading keeps progress; private window starts fresh without errors.
+- [x] Reloading keeps progress; private window starts fresh without errors.
+
+## Notes
+- Lantern storage is guarded, but older code (`Server.js`, `Player.js`) reads `localStorage` unguarded, so a browser that blocks storage entirely still fails at startup. Fix in M0.4 cleanup.

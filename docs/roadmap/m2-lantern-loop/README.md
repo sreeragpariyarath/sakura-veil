@@ -9,8 +9,8 @@ Built first on the current map with placeholder positions, then moved onto the `
 | 2.1 `Lanterns.js` and placement | [plan](2.1-lanterns-system/plan.md) | Done |
 | 2.2 Interaction and card opening | [plan](2.2-interaction/plan.md) | Done (gamepad/mobile untested) |
 | 2.3 Lit state | [plan](2.3-lit-state/plan.md) | Done |
-| 2.4 Saved progress | [plan](2.4-progress/plan.md) | Not started |
-| 2.5 Finale event | [plan](2.5-finale-event/plan.md) | Not started |
+| 2.4 Saved progress | [plan](2.4-progress/plan.md) | Done |
+| 2.5 Finale event | [plan](2.5-finale-event/plan.md) | Done |
 
 ## Reuses
 - `japanOldLampModel` (`japan_old_lamp.glb`), already loaded in `Game.js`.

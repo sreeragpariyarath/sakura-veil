@@ -10,6 +10,8 @@ import { InteractivePoints } from '../InteractivePoints.js'
 // Each one opens one portfolio card; lighting all five starts the celebration.
 export class Lanterns
 {
+    static STORAGE_KEY = 'sakura-veil-lanterns'
+
     // Placeholder positions, one per future zone (docs/roadmap/m1-festival-garden), 40–80 m from the spawn on dry ground
     static ITEMS = [
         { id: 'about',      label: 'About me',   position: new THREE.Vector3(- 40, 0, 10),  rotation: 0.4 }, // Sakura Grove
@@ -46,6 +48,8 @@ export class Lanterns
         this.setGlowGeometries()
         this.setPlacements()
         this.setItems()
+        this.setFinale()
+        this.restore()
 
         this.game.ticker.events.on('tick', () =>
         {
@@ -56,6 +60,107 @@ export class Lanterns
         {
             this.game.debug.addThreeColorBinding(this.debugPanel, this.markerColor.value, 'markerColor')
             this.game.debug.addThreeColorBinding(this.debugPanel, this.lightColor.value, 'lightColor')
+            this.debugPanel.addButton({ title: 'Light all' }).on('click', () => { for(const item of this.items.values()) this.light(item) })
+            this.debugPanel.addButton({ title: 'Replay finale' }).on('click', () => { this.triggerFinale() })
+            this.debugPanel.addButton({ title: 'Reset lanterns' }).on('click', () => { this.reset() })
+        }
+    }
+
+    /**
+     * Saved progress: lit lantern ids and whether the finale was seen, in localStorage.
+     * Every access is guarded: storage can be missing or throw (private windows, blocked site data).
+     */
+    load()
+    {
+        try
+        {
+            const data = JSON.parse(localStorage.getItem(Lanterns.STORAGE_KEY))
+            if(data && Array.isArray(data.lit))
+                return { lit: data.lit, finaleSeen: data.finaleSeen === true }
+        }
+        catch(error) {}
+
+        return { lit: [], finaleSeen: false }
+    }
+
+    save()
+    {
+        try
+        {
+            const lit = [ ...this.items.values() ].filter(item => item.lit).map(item => item.id)
+            localStorage.setItem(Lanterns.STORAGE_KEY, JSON.stringify({ lit, finaleSeen: this.finale.seen }))
+        }
+        catch(error) {}
+    }
+
+    restore()
+    {
+        const data = this.load()
+        this.finale.seen = data.finaleSeen
+
+        // Instantly, without burst or sound
+        for(const id of data.lit)
+        {
+            const item = this.items.get(id)
+            if(item)
+                this.light(item, false)
+        }
+
+        // All lit but the finale was missed (page left before the last card closed) => play it shortly
+        if(this.getLitCount() === this.items.size && !this.finale.seen)
+            gsap.delayedCall(3, () => this.triggerFinale())
+    }
+
+    reset()
+    {
+        for(const item of this.items.values())
+        {
+            item.lit = false
+            gsap.killTweensOf(item.litProgress)
+            gsap.killTweensOf(item.marker.scale)
+            item.litProgress.value = 0
+            item.marker.visible = true
+            item.marker.scale.setScalar(0.035)
+        }
+
+        this.finale.seen = false
+        this.finale.pending = false
+        this.save()
+    }
+
+    /**
+     * Finale: fires once, after the card of the fifth lantern closes.
+     * M4 (fireworks) and M6 (story text, music) listen to `lanterns.events.on('finale', …)`.
+     */
+    setFinale()
+    {
+        this.finale = { seen: false, pending: false }
+
+        this.game.modals.events.on('close', () =>
+        {
+            if(!this.finale.pending)
+                return
+
+            this.finale.pending = false
+            gsap.delayedCall(0.6, () => this.triggerFinale())
+        })
+    }
+
+    triggerFinale()
+    {
+        this.finale.seen = true
+        this.save()
+
+        this.events.trigger('finale')
+
+        // Placeholder celebration until the fireworks (roadmap M4) and story text (M6) exist
+        console.log('🎆 The festival begins! Thank you for visiting.')
+        if(this.game.world.confetti)
+        {
+            const position = this.game.player.position
+            this.game.world.confetti.pop(position.clone())
+            gsap.delayedCall(0.4, () => this.game.world.confetti.pop(position.clone().add(new THREE.Vector3(1.5, - 1, 1.5))))
+            gsap.delayedCall(0.8, () => this.game.world.confetti.pop(position.clone().add(new THREE.Vector3(- 1.5, - 1, - 1.5))))
         }
     }
 
@@ -220,7 +325,18 @@ export class Lanterns
             item.marker.visible = false
         }
 
-        this.events.trigger('lit', [ item, this.getLitCount() ])
+        const count = this.getLitCount()
+
+        if(animate)
+        {
+            this.save()
+
+            // Last lantern lit for the first time => finale once its card closes
+            if(count === this.items.size && !this.finale.seen)
+                this.finale.pending = true
+        }
+
+        this.events.trigger('lit', [ item, count, ! animate ])
     }
 
     getLitCount()
