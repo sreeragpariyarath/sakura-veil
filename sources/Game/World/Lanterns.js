@@ -364,7 +364,7 @@ export class Lanterns
     {
         // "Press E" label floating above the lamp; opens the lantern's card (`.js-modal` in index.html)
         item.interactivePoint = this.game.interactivePoints.create(
-            item.position.clone().add(new THREE.Vector3(0, this.height + 0.8, 0)),
+            item.position.clone().add(new THREE.Vector3(0, this.height + 1.3, 0)),
             item.label,
             InteractivePoints.ALIGN_LEFT,
             InteractivePoints.STATE_CONCEALED,

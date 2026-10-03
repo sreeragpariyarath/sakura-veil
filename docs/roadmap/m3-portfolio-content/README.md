@@ -5,5 +5,5 @@ The 20% portfolio part: what each lantern's card shows. Content lives in data, s
 | Sub-phase | Plan | Status |
 |---|---|---|
 | 3.1 Portfolio data file | [plan](3.1-data/plan.md) | Not started |
-| 3.2 Card layout and style | [plan](3.2-card-layout/plan.md) | Not started |
+| 3.2 Card layout and style | [plan](3.2-card-layout/plan.md) | In progress (festival card frame, stretches with text) |
 | 3.3 Real content | [plan](3.3-real-content/plan.md) | Waiting on content |

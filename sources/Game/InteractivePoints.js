@@ -6,6 +6,11 @@ import { Inputs } from './Inputs/Inputs.js'
 
 export class InteractivePoints
 {
+    // Measured on static/images/ui/interaction-label.webp (1200 × 539): diamond centre, text area, plain stretch zone
+    static LABEL_ART = { width: 1200, height: 539, diamondX: 265, diamondY: 205, textLeft: 470, textRight: 1000, textY: 232, stretchFrom: 800, stretchTo: 950, fontSize: 118 }
+    static LABEL_HEIGHT = 1.8 // World units (the group is scaled by 0.85)
+    static DIAMOND_ASPECT = 571 / 512 // interaction-diamond.webp
+
     static ALIGN_LEFT = 1
     static ALIGN_RIGHT = 2
 
@@ -31,6 +36,7 @@ export class InteractivePoints
         this.temporaryHidden = true
         this.needsTest = false
 
+        this.setLabelArt()
         this.setSounds()
         this.setGeometries()
         this.setMaterials()
@@ -41,6 +47,56 @@ export class InteractivePoints
         {
             this.update()
         }, 9)
+    }
+
+    setLabelArt()
+    {
+        // Festival label frame and brush font for the canvas labels
+        this.labelImage = new Image()
+        this.labelImage.src = 'images/ui/interaction-label.webp'
+
+        const imageReady = this.labelImage.decode().catch(() => {})
+        const fontReady = document.fonts ? document.fonts.load(`400 ${InteractivePoints.LABEL_ART.fontSize}px "Festival Brush"`, 'Aa1').catch(() => {}) : Promise.resolve()
+        this.labelArtReady = Promise.all([ imageReady, fontReady ])
+
+        // Diamond marker texture
+        this.diamondTexture = new THREE.TextureLoader().load('images/ui/interaction-diamond.webp')
+        this.diamondTexture.colorSpace = THREE.SRGBColorSpace
+    }
+
+    drawLabelCanvas(text)
+    {
+        const art = InteractivePoints.LABEL_ART
+        const font = `400 ${art.fontSize}px "Festival Brush", Georgia, serif`
+
+        // Measure, then widen only the plain middle of the bar
+        const canvas = document.createElement('canvas')
+        let context = canvas.getContext('2d')
+        context.font = font
+        const textWidth = Math.ceil(context.measureText(text).width)
+        const available = art.textRight - art.textLeft - 60
+        const extra = Math.max(0, textWidth - available)
+
+        canvas.width = art.width + extra
+        canvas.height = art.height
+        context = canvas.getContext('2d')
+
+        const image = this.labelImage
+        if(image.complete && image.naturalWidth)
+        {
+            const stretchWidth = art.stretchTo - art.stretchFrom
+            context.drawImage(image, 0, 0, art.stretchFrom, art.height, 0, 0, art.stretchFrom, art.height)
+            context.drawImage(image, art.stretchFrom, 0, stretchWidth, art.height, art.stretchFrom, 0, stretchWidth + extra, art.height)
+            context.drawImage(image, art.stretchTo, 0, art.width - art.stretchTo, art.height, art.stretchTo + extra, 0, art.width - art.stretchTo, art.height)
+        }
+
+        context.font = font
+        context.fillStyle = '#8c1d3a'
+        context.textAlign = 'center'
+        context.textBaseline = 'middle'
+        context.fillText(text, (art.textLeft + art.textRight + extra) * 0.5, art.textY)
+
+        return canvas
     }
 
     setSounds()
@@ -82,7 +138,7 @@ export class InteractivePoints
         // Uniforms
         this.playerPosition = uniform(vec2())
         this.backColor = uniform(color('#251f2b'))
-        this.frontColor = uniform(color('#ffffff'))
+        this.frontColor = uniform(color('#8c1d3a')) // Key icon colour, on the paper of the label's diamond
 
         // Debug
         if(this.game.debug.active)
@@ -206,125 +262,93 @@ export class InteractivePoints
         const materials = []
 
         /**
-         * Label
+         * Label: the festival label art (static/images/ui/interaction-label.webp), 3-sliced so longer text
+         * stretches the plain middle of the bar while the diamond and the right cap keep their shape.
+         * Drawn into a canvas texture; redrawn once the art and the brush font have loaded.
          */
-        // Canvas
-        const height = 64
-        const textPaddingLeft = align === InteractivePoints.ALIGN_LEFT ? 60 : 12
-        const textPaddingRight = align === InteractivePoints.ALIGN_LEFT ? 12 : 60
-        const textOffsetVertical = 2
-        const font = `700 ${height}px "Amatic SC"`
-
-        const canvas = document.createElement('canvas')
-        canvas.style.position = 'fixed'
-        canvas.style.zIndex = 999
-        canvas.style.top = 0
-        canvas.style.left = 0
-        // document.body.append(canvas)
-
-        const context = canvas.getContext('2d')
-        context.font = font
-
-        const textSize = context.measureText(text)
-        const width = Math.ceil(textSize.width) + textPaddingLeft + textPaddingRight + 2
-        canvas.width = width
-        canvas.height = height
-
-        context.fillStyle = '#000000'
-        context.fillRect(0, 0, width, height)
-
-        context.font = font
-        context.fillStyle = '#ffffff'
-        context.textAlign = 'start'
-        context.textBaseline = 'middle'
-        context.fillText(text, textPaddingLeft + 1, height * 0.5 + textOffsetVertical)
-
-        const labelTexture = new THREE.Texture(canvas)
-        labelTexture.minFilter = THREE.NearestFilter
-        labelTexture.magFilter = THREE.NearestFilter
-        labelTexture.generateMipmaps = false
-
-        labelTexture.needsUpdate = true
-
-        // Material
         const labelMaterial = new THREE.MeshLambertNodeMaterial({ transparent: true, depthTest: true })
         materials.push(labelMaterial)
 
         const labelOffset = uniform(1)
-        labelMaterial.outputNode = Fn(() =>
+        const labelOutput = (labelTexture) => Fn(() =>
         {
-            // const _uv = uv().add(vec2(labelOffset, 0))
+            // Slide in from the diamond side
             const _uv = vec2(
                 uv().x.sub(labelOffset),
                 uv().y
             )
-
-            const text = texture(labelTexture, _uv).r
-            
-            // Discard
             _uv.x.greaterThan(1).discard()
             _uv.x.lessThan(0).discard()
 
-            // Fogged back color
-            const foggedBackColor = this.game.fog.strength.mix(this.backColor, this.game.fog.color)
+            const art = texture(labelTexture, _uv)
+            art.a.lessThan(0.5).discard()
 
-            // Final color
-            const finalColor = mix(foggedBackColor, this.frontColor, text)
-            return vec4(vec3(finalColor), 1)
+            return vec4(art.rgb, 1)
         })()
 
-        // Mesh
         const label = new THREE.Mesh(
             this.geometries.label,
             labelMaterial
         )
         label.renderOrder = 6
-        label.scale.x = 0.75 * width / height
-        label.scale.y = 0.75
         label.position.z = -0.01
-
-        label.position.x = align === InteractivePoints.ALIGN_LEFT ? 0 : - label.scale.x
         label.visible = false
         group.add(label)
 
+        const drawLabel = () =>
+        {
+            const canvas = this.drawLabelCanvas(text)
+            const labelTexture = new THREE.CanvasTexture(canvas)
+            labelTexture.colorSpace = THREE.SRGBColorSpace
+            labelTexture.generateMipmaps = false
+            labelTexture.minFilter = THREE.LinearFilter
+
+            labelMaterial.outputNode = labelOutput(labelTexture)
+            labelMaterial.needsUpdate = true
+
+            // Size and place it so the art's diamond is centred on the point (the key icon sits in it)
+            const art = InteractivePoints.LABEL_ART
+            label.scale.y = InteractivePoints.LABEL_HEIGHT
+            label.scale.x = label.scale.y * canvas.width / canvas.height
+            label.position.x = - art.diamondX / canvas.width * label.scale.x
+            label.position.y = (0.5 - art.diamondY / canvas.height) * - label.scale.y
+        }
+        drawLabel()
+        this.labelArtReady.then(drawLabel)
+
         /**
-         * Diamond
+         * Diamond: marker shown while the point is concealed (static/images/ui/interaction-diamond.webp).
+         * `threshold` scales it: 0 hidden, 0.25 small marker, 0.5 full size.
          */
-        // Material
         const diamondMaterial = new THREE.MeshLambertNodeMaterial({ transparent: true, depthTest: true })
         materials.push(diamondMaterial)
 
         const threshold = uniform(0)
-        const lineThickness = uniform(0.150)
+        const lineThickness = uniform(0.150) // Kept for the existing reveal/conceal tweens
         const lineOffset = uniform(0.175)
 
         diamondMaterial.outputNode = Fn(() =>
         {
-            const _uv = uv()
-            const distance = max(_uv.x.sub(0.5).abs(), _uv.y.sub(0.5).abs()).mul(2)
+            const center = vec2(0.5, 0.5)
+            const _uv = uv().sub(center).div(threshold.mul(2).max(0.0001)).add(center)
 
-            // Line
-            const lineDistance = threshold.sub(distance).sub(lineOffset).abs()
-            const line = step(lineDistance, lineThickness.mul(0.5))
+            _uv.x.greaterThan(1).discard()
+            _uv.x.lessThan(0).discard()
+            _uv.y.greaterThan(1).discard()
+            _uv.y.lessThan(0).discard()
 
-            // Discard
-            distance.greaterThan(threshold).discard()
+            const art = texture(this.diamondTexture, vec2(_uv.x, _uv.y.oneMinus()))
+            art.a.lessThan(0.5).discard()
 
-            // Fogged back color
-            const foggedBackColor = this.game.fog.strength.mix(this.backColor, this.game.fog.color)
-
-            // Final color
-            const finalColor = mix(foggedBackColor, this.frontColor, line)
-            return vec4(vec3(finalColor), 1)
+            return vec4(art.rgb, 1)
         })()
 
-        // Mesh
         const diamond = new THREE.Mesh(
             this.geometries.plane,
             diamondMaterial
         )
         diamond.renderOrder = 7
-        diamond.rotation.z = Math.PI * 0.25
+        diamond.scale.set(0.75, 0.75 * InteractivePoints.DIAMOND_ASPECT, 1)
         diamond.visible = false
         group.add(diamond)
 
@@ -435,6 +459,11 @@ export class InteractivePoints
 
             diamond.visible = true
             label.visible = true
+            gsap.delayedCall(0.3, () =>
+            {
+                if(item.state === InteractivePoints.STATE_OPEN)
+                    diamond.visible = false
+            })
 
             group.add(this.keyIcon)
 
