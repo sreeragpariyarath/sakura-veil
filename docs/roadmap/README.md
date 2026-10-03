@@ -16,7 +16,7 @@ There is no 3D modeller on the team, so every model comes from free libraries (s
 | M3 | [Portfolio content](m3-portfolio-content/README.md) | Real About / Experience / Skills / Projects / Contact cards | Waiting on content |
 | M4 | [Celebration](m4-celebration/README.md) | Festival level, petals, glow, confetti and the fireworks finale | Not started |
 | M5 | [Rei](m5-rei/README.md) | Rei matches the concept turnaround | Postponed (Rei model being reworked) |
-| M6 | [Audio and UI](m6-audio-ui/README.md) | Story text, lantern counter, festival music, SFX, loading screen | Not started |
+| M6 | [Audio and UI](m6-audio-ui/README.md) | Story text, lantern counter, festival music, SFX, loading screen | In progress |
 | M7 | [Performance and release](m7-release/README.md) | Runs well on laptops and phones, deployed | Not started |
 | Later | [Extra areas](later-extra-areas/README.md) | Optional ideas after release | Parked |
 
