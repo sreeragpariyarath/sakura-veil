@@ -17,8 +17,8 @@ export class Fog
         this.color = mix(this.colorA, this.colorB, colorMix)
         this.game.scene.backgroundNode = this.color
 
-        this.near = uniform(2500)
-        this.far = uniform(5000)
+        this.near = uniform(450)
+        this.far = uniform(900)
         this.strength = rangeFogFactor(this.near, this.far)
 
         this.game.ticker.events.on('tick', () =>
@@ -42,9 +42,8 @@ export class Fog
         // Apply day cycles sky background colors
         this.colorA.value.copy(this.game.dayCycles.properties.fogColorA.value)
         this.colorB.value.copy(this.game.dayCycles.properties.fogColorB.value)
-        // Keep fog distant (2500m to 5000m) so the entire 3km island landscape,
-        // hills, rivers, trees, and pagoda mountain peak remain crystal clear!
-        this.near.value = 2500
-        this.far.value = 5000
+        // Atmospheric fog beyond the island coastline (450m to 900m)
+        this.near.value = 450
+        this.far.value = 900
     }
 }

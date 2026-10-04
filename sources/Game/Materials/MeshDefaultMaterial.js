@@ -86,8 +86,8 @@ export class MeshDefaultMaterial extends THREE.MeshLambertNodeMaterial
             if(this.hasWater)
             {
                 const nearWaterSurface = positionWorld.y.sub(this.game.water.surfaceElevationUniform).abs().greaterThan(this.game.water.surfaceThicknessUniform)
-                outputColor.assign(nearWaterSurface.select(outputColor, color('#ffffff')))
-                baseColor.assign(nearWaterSurface.select(baseColor, color('#ffffff')))
+                outputColor.assign(nearWaterSurface.select(outputColor, mix(outputColor, color('#dbeafe'), float(0.3))))
+                baseColor.assign(nearWaterSurface.select(baseColor, mix(baseColor, color('#dbeafe'), float(0.3))))
             }
 
             // Light

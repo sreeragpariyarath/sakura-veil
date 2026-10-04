@@ -22,7 +22,7 @@ export class PhysicsFlight
         this.deceleration = 7
         this.climbSpeed = 6
         this.verticalAcceleration = 6
-        this.maxAltitude = 180
+        this.maxAltitude = 75
 
         this.yaw = 0
         this.bank = 0

@@ -158,8 +158,8 @@ export class Player
             if(typeof callback === 'function')
                 callback()
 
-            // Find respawn
-            let respawn = respawnName ? this.game.respawns.getByName(respawnName) : this.game.respawns.getClosest(this.position)
+            // Find respawn (default to Awakening Beach)
+            let respawn = respawnName ? this.game.respawns.getByName(respawnName) : this.game.respawns.getDefault()
 
             // Update physical vehicle
             this.game.physicalVehicle.moveTo(

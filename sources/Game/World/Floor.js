@@ -49,55 +49,36 @@ export class Floor
         }
         geometry.computeVertexNormals()
 
-        // 2. Terrain Data & Visual Colors
+        // 2. Terrain Data & Visual Colors (Restored Original Ground)
         const terrainData = this.game.terrain.terrainNode(positionWorld.xz)
+        const slabHighColor = uniform(color('#ffcf8b'))
+        const slabLowColor = uniform(color('#a87762'))
+        const slabTextureFrequency = uniform(0.175)
+        const slabNoiseFrequency = uniform(0.03)
 
         const colorNode = Fn(() =>
         {
             const baseColor = this.game.terrain.colorNode(terrainData)
 
-            // Procedural Organic Flagstones (cobblestone pavers with irregular rounded shapes)
-            const stoneFreq = uniform(0.38)
-            const stoneUv = positionWorld.xz.mul(stoneFreq)
-            const stoneNoise = texture(this.game.noises.perlin, stoneUv.mul(0.55)).r
-            const stoneNoiseFine = texture(this.game.noises.perlin, stoneUv.mul(2.1)).r
+            const slabTerrain = terrainData.r
+            const slabNoiseUv = positionWorld.xz.mul(slabNoiseFrequency)
+            const slabNoise = texture(this.game.noises.perlin, slabNoiseUv).r
+            const slabsTexture = texture(this.game.resources.floorSlabsTexture, positionWorld.xz.mul(slabTextureFrequency)).r
+            const slabColor = mix(slabLowColor, slabHighColor, slabsTexture)
 
-            const perturbedUv = stoneUv.add(vec2(stoneNoise, stoneNoiseFine).sub(0.5).mul(0.38))
-            const stoneGrid = sin(perturbedUv.x.mul(Math.PI)).mul(sin(perturbedUv.y.mul(Math.PI))).abs()
-            const stoneGroove = smoothstep(0.05, 0.24, stoneGrid)
-
-            // Warm weathered granite & sandstone tints
-            const stoneColorWarm = color('#d4c0ab')
-            const stoneColorCool = color('#9e8c79')
-            const stoneSurface = mix(stoneColorCool, stoneColorWarm, stoneNoiseFine)
-
-            // Loam earth & moss in cracks
-            const crackDirt = color('#3d2c1f')
-            const crackMoss = color('#355a22')
-            const crackColor = mix(crackDirt, crackMoss, stoneNoise.mul(0.6))
-            const flagstoneColor = mix(crackColor, stoneSurface, stoneGroove)
-
-            // Falling pink sakura petals on the stone paths
-            const petalUv = positionWorld.xz.mul(1.4)
-            const petalNoise = texture(this.game.noises.perlin, petalUv).r
-            const petalMask = smoothstep(0.77, 0.86, petalNoise)
-            const petalColor = color('#ff9fc2')
-            const pathColor = mix(flagstoneColor, petalColor, petalMask.mul(0.85))
-
-            // Keep Awakening Beach (south coast Z > 1050) as pure golden sand
-            const isSouthBeach = positionWorld.z.greaterThan(1050)
-            const pathMask = terrainData.r.mul(select(isSouthBeach, 0.0, 1.0))
-            const blendedPath = mix(baseColor, pathColor, pathMask.smoothstep(0.12, 0.72))
-
-            // Wildflower speckles across meadows (soft white daisies & sakura blossom specks)
-            const meadowUv = positionWorld.xz.mul(0.9)
-            const flowerNoise = texture(this.game.noises.perlin, meadowUv).r
-            const flowerMask = smoothstep(0.82, 0.90, flowerNoise).mul(terrainData.g)
-            const flowerColor = mix(color('#fffdf2'), color('#ffb3cb'), step(0.86, flowerNoise))
-            const finalColor = mix(blendedPath, flowerColor, flowerMask.mul(0.88))
+            const slab = slabTerrain.mul(slabNoise)
+            const finalColor = mix(baseColor, slabColor, slab)
 
             return finalColor
         })()
+
+        if(this.game.debug.active && this.debugPanel)
+        {
+            this.debugPanel.addBinding(slabTextureFrequency, 'value', { label: 'slabTextureFrequency', min: 0, max: 1, step: 0.001 })
+            this.debugPanel.addBinding(slabNoiseFrequency, 'value', { label: 'slabNoiseFrequency', min: 0, max: 0.1, step: 0.001 })
+            this.game.debug.addThreeColorBinding(this.debugPanel, slabHighColor.value, 'slabHighColor')
+            this.game.debug.addThreeColorBinding(this.debugPanel, slabLowColor.value, 'slabLowColor')
+        }
 
         // Material using real vertex normals, no light bounce overexposure, no water blowout
         const material = new MeshDefaultMaterial({
@@ -140,7 +121,7 @@ export class Floor
     {
         // Invisible walls at WorldLayout.boundary, taller than maximum flight altitude
         const boundary = WorldLayout.boundary
-        const halfHeight = 120
+        const halfHeight = 60
         const halfThickness = 1
         const halfLength = boundary + halfThickness
 

@@ -21,15 +21,14 @@ export class PagodaMountain
         this.group = new THREE.Group()
         this.group.name = 'pagodaMountain'
 
-        this.summitX = 0
-        this.summitZ = -1390
-        this.summitElevation = WorldLayout.getElevation(this.summitX, this.summitZ) // ~88m
+        const summit = WorldLayout.getArena('summit')
+        this.summitX = summit ? summit.x : 0
+        this.summitZ = summit ? summit.z : -235
+        this.summitElevation = WorldLayout.getElevation(this.summitX, this.summitZ)
 
         this.setMaterials()
-        this.setMountainCliffs()
         this.setPagoda()
         this.setStaircase()
-        this.setPerimeterRocks()
 
         this.game.scene.add(this.group)
     }
@@ -244,11 +243,11 @@ export class PagodaMountain
     {
         // Grand stone mountain staircase ascending the south ridge to the Pagoda gate
         const stairsGroup = new THREE.Group()
-        const startZ = -1080
-        const endZ = this.summitZ + 25
-        const steps = 36
+        const startZ = this.summitZ + 60
+        const endZ = this.summitZ + 15
+        const steps = 24
 
-        const stepGeom = new THREE.BoxGeometry(10, 0.6, 6)
+        const stepGeom = new THREE.BoxGeometry(6, 0.4, 2.5)
 
         for(let i = 0; i < steps; i++)
         {

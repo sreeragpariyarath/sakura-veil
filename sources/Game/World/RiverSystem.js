@@ -33,7 +33,7 @@ export class RiverSystem
     setMaterial()
     {
         // Flowing river water shader in TSL
-        const riverColorNode = Fn(() =>
+        const riverRgbNode = Fn(() =>
         {
             const vUv = uv()
 
@@ -65,18 +65,29 @@ export class RiverSystem
 
             const waterRgb = mix(waterDeep, waterShallow, noise1.mul(0.6))
             const withFoam = mix(waterRgb, foamColor, totalFoam.mul(0.75))
-            const finalRgb = mix(withFoam, petalColor, petalMask.mul(0.85))
-
-            const alpha = mix(float(0.75), float(0.96), totalFoam)
-
-            return vec4(finalRgb, alpha)
+            return mix(withFoam, petalColor, petalMask.mul(0.85))
         })()
 
-        this.riverMaterial = new THREE.MeshBasicNodeMaterial({
-            colorNode: riverColorNode,
+        const riverAlphaNode = Fn(() =>
+        {
+            const vUv = uv()
+            const shoreDist = sin(vUv.x.mul(Math.PI))
+            const edgeFade = smoothstep(0.0, 0.12, shoreDist)
+            return float(0.85).mul(edgeFade)
+        })()
+
+        this.riverMaterial = new MeshDefaultMaterial({
+            colorNode: riverRgbNode,
+            alphaNode: riverAlphaNode,
             transparent: true,
+            alphaTest: 0,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            hasFog: true,
+            hasWater: false,
+            hasLightBounce: false,
+            hasCoreShadows: false,
+            hasDropShadows: false
         })
     }
 
@@ -150,15 +161,17 @@ export class RiverSystem
 
     setArchedBridge()
     {
-        // Arched red wooden bridge spanning River Crossing (X: 750, Z: 490)
-        // Directly matching the concept art screenshots 3 & 4!
+        const riverArena = WorldLayout.getArena('river')
+        const bx = riverArena ? riverArena.x : 130
+        const bz = riverArena ? riverArena.z : 80
+
         const bridgeGroup = new THREE.Group()
-        bridgeGroup.position.set(750, WorldLayout.getElevation(750, 490) + 1.2, 490)
+        bridgeGroup.position.set(bx, WorldLayout.getElevation(bx, bz) + 0.4, bz)
         bridgeGroup.rotation.y = -0.55 // Crosses perpendicular to river
 
-        const bridgeSpan = 70
-        const bridgeWidth = 14
-        const archHeight = 6.5
+        const bridgeSpan = 18
+        const bridgeWidth = 5
+        const archHeight = 2.0
 
         const redMat = new MeshDefaultMaterial({
             colorNode: color('#c03221'), // Vermilion lacquer
@@ -198,16 +211,16 @@ export class RiverSystem
                 const x = (t - 0.5) * bridgeSpan
                 const y = Math.sin(t * Math.PI) * archHeight
 
-                const postGeom = new THREE.CylinderGeometry(0.3, 0.35, 2.2, 8)
+                const postGeom = new THREE.CylinderGeometry(0.12, 0.14, 1.2, 8)
                 const post = new THREE.Mesh(postGeom, redMat)
-                post.position.set(x, y + 1.1, side)
+                post.position.set(x, y + 0.6, side)
                 post.castShadow = true
                 bridgeGroup.add(post)
 
                 // Top post finial (giboshi ornament)
-                const finialGeom = new THREE.SphereGeometry(0.35, 8, 8)
+                const finialGeom = new THREE.SphereGeometry(0.16, 8, 8)
                 const finial = new THREE.Mesh(finialGeom, redMat)
-                finial.position.set(x, y + 2.3, side)
+                finial.position.set(x, y + 1.25, side)
                 bridgeGroup.add(finial)
             }
 
@@ -218,12 +231,12 @@ export class RiverSystem
                 const t = r / 20
                 railCurvePoints.push(new THREE.Vector3(
                     (t - 0.5) * bridgeSpan,
-                    Math.sin(t * Math.PI) * archHeight + 1.9,
+                    Math.sin(t * Math.PI) * archHeight + 1.05,
                     side
                 ))
             }
             const railCurve = new THREE.CatmullRomCurve3(railCurvePoints)
-            const railGeom = new THREE.TubeGeometry(railCurve, 24, 0.22, 8, false)
+            const railGeom = new THREE.TubeGeometry(railCurve, 20, 0.1, 8, false)
             const rail = new THREE.Mesh(railGeom, redMat)
             bridgeGroup.add(rail)
         }
@@ -233,38 +246,6 @@ export class RiverSystem
 
     setRiverBoulders()
     {
-        // River stones and rapids boulders clustered along the riverbed
-        const boulderGeom = new THREE.DodecahedronGeometry(1, 1)
-        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x5a6572, roughness: 0.85 })
-
-        const boulderClusters = [
-            { x: 260, z: -980, count: 6, scale: 6 },
-            { x: 550, z: -540, count: 8, scale: 7 },
-            { x: 730, z: -250, count: 7, scale: 8 },
-            { x: 860, z: 240,  count: 9, scale: 6 }, // Around the bridge
-            { x: 1040, z: 660, count: 8, scale: 7 },
-            { x: 1400, z: 1020, count: 10, scale: 9 }, // Near coastal estuary
-        ]
-
-        for(const cluster of boulderClusters)
-        {
-            for(let b = 0; b < cluster.count; b++)
-            {
-                const ox = (Math.sin(b * 3.7) * 0.5) * 45
-                const oz = (Math.cos(b * 2.3) * 0.5) * 45
-                const bx = cluster.x + ox
-                const bz = cluster.z + oz
-                const by = WorldLayout.getElevation(bx, bz)
-
-                const boulder = new THREE.Mesh(boulderGeom, stoneMat)
-                const s = cluster.scale * (0.7 + (b % 3) * 0.25)
-                boulder.position.set(bx, by + s * 0.35, bz)
-                boulder.scale.set(s, s * 0.75, s * 1.1)
-                boulder.rotation.set((b * 1.7) % 2, (b * 2.9) % (Math.PI * 2), 0)
-                boulder.castShadow = true
-                boulder.receiveShadow = true
-                this.group.add(boulder)
-            }
-        }
+        // Bulky low-poly boulders removed per design specification
     }
 }

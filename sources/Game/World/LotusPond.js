@@ -20,10 +20,11 @@ export class LotusPond
         this.group = new THREE.Group()
         this.group.name = 'lotusPond'
 
-        this.pondX = -990
-        this.pondZ = -900
-        this.pondRadius = 155
-        this.waterY = 23.5
+        const pondData = WorldLayout.ponds[0]
+        this.pondX = pondData ? pondData.x : -165
+        this.pondZ = pondData ? pondData.z : -155
+        this.pondRadius = pondData ? pondData.radius : 28
+        this.waterY = WorldLayout.getElevation(this.pondX, this.pondZ) + 0.8
 
         this.setMaterials()
         this.setWaterSurface()
@@ -37,31 +38,38 @@ export class LotusPond
     setMaterials()
     {
         // 1. Shimmering pond water shader
-        const pondColorNode = Fn(() =>
+        const waterRgbNode = Fn(() =>
+        {
+            const vUv = uv()
+            const waveSpeed = uniform(0.12)
+            const waveUv = vec2(vUv.x.mul(10.0).add(time.mul(waveSpeed)), vUv.y.mul(10.0).add(time.mul(waveSpeed.mul(0.8))))
+            const waveNoise = texture(this.game.noises.perlin, waveUv.mul(0.18)).r
+
+            const waterDeep = color('#0284c7')
+            const waterShallow = color('#38bdf8')
+            return mix(waterDeep, waterShallow, waveNoise.mul(0.65).add(0.2))
+        })()
+
+        const waterAlphaNode = Fn(() =>
         {
             const vUv = uv()
             const centerDist = vUv.sub(vec2(0.5)).length().mul(2.0)
-
-            const waveSpeed = uniform(0.12)
-            const waveUv = vec2(vUv.x.mul(12.0).add(time.mul(waveSpeed)), vUv.y.mul(12.0).add(time.mul(waveSpeed.mul(0.8))))
-            const waveNoise = texture(this.game.noises.perlin, waveUv.mul(0.18)).r
-
-            const waterDeep = color('#0369a1')
-            const waterShallow = color('#38bdf8')
-            const waterRgb = mix(waterDeep, waterShallow, waveNoise.mul(0.7).add(0.15))
-
-            // Gentle edge fade
             const edgeAlpha = smoothstep(1.0, 0.85, centerDist)
-            const alpha = mix(float(0.80), float(0.92), waveNoise).mul(edgeAlpha)
-
-            return vec4(waterRgb, alpha)
+            return float(0.85).mul(edgeAlpha)
         })()
 
-        this.waterMaterial = new THREE.MeshBasicNodeMaterial({
-            colorNode: pondColorNode,
+        this.waterMaterial = new MeshDefaultMaterial({
+            colorNode: waterRgbNode,
+            alphaNode: waterAlphaNode,
             transparent: true,
+            alphaTest: 0,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            hasFog: true,
+            hasWater: false,
+            hasLightBounce: false,
+            hasCoreShadows: false,
+            hasDropShadows: false
         })
 
         // 2. Lily Pad Material (waxy emerald green)
@@ -106,58 +114,52 @@ export class LotusPond
     {
         // Grand Sacred Torii standing in the pond waters
         const torii = new THREE.Group()
-        torii.position.set(this.pondX, this.waterY, this.pondZ + 20)
+        torii.position.set(this.pondX, this.waterY, this.pondZ + 5)
         torii.rotation.y = Math.PI * 0.15
 
-        const postRadius = 1.1
-        const postHeight = 22
-        const postSpacing = 24
+        const postRadius = 0.35
+        const postHeight = 7.5
+        const postSpacing = 7.0
 
         // Two vertical pillars (Hashira)
         const postGeom = new THREE.CylinderGeometry(postRadius * 0.85, postRadius, postHeight, 16)
         for(const px of [ -postSpacing * 0.5, postSpacing * 0.5 ])
         {
             const post = new THREE.Mesh(postGeom, this.toriiMaterial)
-            post.position.set(px, postHeight * 0.5 - 2, 0)
+            post.position.set(px, postHeight * 0.5 - 0.5, 0)
             post.castShadow = true
             torii.add(post)
 
             // Black stone/wood pedestal (Kamebara)
-            const baseGeom = new THREE.CylinderGeometry(postRadius * 1.5, postRadius * 1.7, 3, 16)
+            const baseGeom = new THREE.CylinderGeometry(postRadius * 1.5, postRadius * 1.7, 1.0, 16)
             const base = new THREE.Mesh(baseGeom, this.toriiRoofMaterial)
-            base.position.set(px, 1.5, 0)
+            base.position.set(px, 0.5, 0)
             base.receiveShadow = true
             torii.add(base)
         }
 
         // Top curved lintel (Kasagi) with dark cap roof
-        const topLength = postSpacing + 14
-        const topLintelGeom = new THREE.BoxGeometry(topLength, 1.8, 2.4)
+        const topLength = postSpacing + 4.5
+        const topLintelGeom = new THREE.BoxGeometry(topLength, 0.6, 0.8)
         const topLintel = new THREE.Mesh(topLintelGeom, this.toriiMaterial)
-        topLintel.position.set(0, postHeight - 1, 0)
+        topLintel.position.set(0, postHeight - 0.3, 0)
         topLintel.castShadow = true
         torii.add(topLintel)
 
         // Upper dark curved roof plate
-        const roofGeom = new THREE.BoxGeometry(topLength + 2, 0.7, 3.2)
+        const roofGeom = new THREE.BoxGeometry(topLength + 0.8, 0.25, 1.1)
         const roof = new THREE.Mesh(roofGeom, this.toriiRoofMaterial)
-        roof.position.set(0, postHeight + 0.2, 0)
+        roof.position.set(0, postHeight + 0.1, 0)
         roof.castShadow = true
         torii.add(roof)
 
         // Lower straight crossbeam (Nuki)
-        const subLength = postSpacing + 4
-        const subLintelGeom = new THREE.BoxGeometry(subLength, 1.2, 1.6)
+        const subLength = postSpacing + 1.2
+        const subLintelGeom = new THREE.BoxGeometry(subLength, 0.4, 0.5)
         const subLintel = new THREE.Mesh(subLintelGeom, this.toriiMaterial)
-        subLintel.position.set(0, postHeight - 5.5, 0)
+        subLintel.position.set(0, postHeight - 1.8, 0)
         subLintel.castShadow = true
         torii.add(subLintel)
-
-        // Central plaque strut (Gakuzuka)
-        const strutGeom = new THREE.BoxGeometry(1.6, 3.6, 1.4)
-        const strut = new THREE.Mesh(strutGeom, this.toriiMaterial)
-        strut.position.set(0, postHeight - 3.2, 0)
-        torii.add(strut)
 
         this.group.add(torii)
     }
@@ -168,32 +170,38 @@ export class LotusPond
         const lotusGroup = new THREE.Group()
 
         // Lily pad geometry (circular disc with slight curvature)
-        const padGeom = new THREE.CircleGeometry(2.4, 16)
+        const padGeom = new THREE.CircleGeometry(1.2, 16)
         padGeom.rotateX(-Math.PI * 0.5)
 
         // Lotus flower geometry (central core + cone petals)
-        const flowerCoreGeom = new THREE.CylinderGeometry(0.35, 0.2, 0.4, 8)
-        const petalGeom = new THREE.ConeGeometry(0.5, 1.4, 4)
+        const flowerCoreGeom = new THREE.CylinderGeometry(0.18, 0.1, 0.2, 8)
+        const petalGeom = new THREE.ConeGeometry(0.25, 0.7, 4)
 
         const flowerMaster = new THREE.Group()
-        const core = new THREE.Mesh(flowerCoreGeom, new THREE.MeshBasicNodeMaterial({ colorNode: color('#fcd34d') }))
+        const coreMat = new MeshDefaultMaterial({
+            colorNode: color('#fcd34d'),
+            hasFog: true,
+            hasWater: false,
+            hasLightBounce: false
+        })
+        const core = new THREE.Mesh(flowerCoreGeom, coreMat)
         flowerMaster.add(core)
 
         for(let p = 0; p < 8; p++)
         {
             const angle = (p / 8) * Math.PI * 2
             const petal = new THREE.Mesh(petalGeom, this.lotusFlowerMaterial)
-            petal.position.set(Math.cos(angle) * 0.5, 0.5, Math.sin(angle) * 0.5)
+            petal.position.set(Math.cos(angle) * 0.25, 0.25, Math.sin(angle) * 0.25)
             petal.rotation.set(Math.sin(angle) * 0.4, angle, -Math.cos(angle) * 0.4)
             flowerMaster.add(petal)
         }
 
-        // Place 38 lily pad clusters around the pond
-        const clusters = 38
+        // Place 24 lily pad clusters around the pond
+        const clusters = 24
         for(let c = 0; c < clusters; c++)
         {
             const angle = (c / clusters) * Math.PI * 2 + Math.sin(c * 2.3) * 0.4
-            const dist = 35 + (c % 5) * 22
+            const dist = 6 + (c % 5) * 3.8
             const cx = this.pondX + Math.cos(angle) * dist
             const cz = this.pondZ + Math.sin(angle) * dist
 
@@ -226,27 +234,6 @@ export class LotusPond
 
     setPerimeterStones()
     {
-        // Ring of mossy boulders bordering the pond
-        const stoneGeom = new THREE.DodecahedronGeometry(1, 1)
-        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x56606d, roughness: 0.85 })
-
-        const count = 32
-        for(let i = 0; i < count; i++)
-        {
-            const angle = (i / count) * Math.PI * 2
-            const r = this.pondRadius + 4 + (i % 3) * 8
-            const sx = this.pondX + Math.cos(angle) * r
-            const sz = this.pondZ + Math.sin(angle) * r
-            const sy = WorldLayout.getElevation(sx, sz)
-
-            const stone = new THREE.Mesh(stoneGeom, stoneMat)
-            const s = 6 + (i % 4) * 3
-            stone.position.set(sx, sy + s * 0.35, sz)
-            stone.scale.set(s, s * 0.75, s * 1.1)
-            stone.rotation.set((i * 1.3) % 1, (i * 2.2) % (Math.PI * 2), 0)
-            stone.castShadow = true
-            stone.receiveShadow = true
-            this.group.add(stone)
-        }
+        // Bulky low-poly boulders removed per design specification
     }
 }

@@ -1,25 +1,25 @@
 // Layout of Sauraka Veil (sakura_veil_story_and_characters.md, docs/roadmap/m1-festival-garden/1.1-island-coastline-and-world-structure.md).
-// Epic Open-World RPG Scale: 3,600 x 3,600 m realm, ~3,000 m (3 km) diameter island.
+// Cozy Island Realm: ~700 x 700 m realm canvas, ~550 m diameter island.
 // Pure data in world metres: X = east (+), Z = south (+) [Player arrives at the south beach and journeys north (-Z)].
-// At 20 m/s boost flight, crossing takes ~2.5 minutes; at normal 8 m/s cruise, it takes ~6.5 minutes.
+// Crossing takes ~25-35 seconds with flight, allowing all landmarks to be clearly seen and explored.
 
 export const WorldLayout = {
-    // Total realm canvas (3,600 x 3,600 m centered at origin)
-    size: 3600,
+    // Total realm canvas (700 x 700 m centered at origin)
+    size: 700,
 
-    // Invisible physical world boundary (placed out in deep ocean)
-    boundary: 1750,
+    // Invisible physical world boundary (placed out in ocean)
+    boundary: 340,
 
-    // Narrative arenas and landmarks matching the canon map (scaled for 3km island)
+    // Narrative arenas and landmarks matching the canon map (scaled for cozy 550m island)
     arenas: [
-        { id: 'landing',  name: 'Awakening Beach',             x:    0, z:  1300, radius: 180, facing: Math.PI },
-        { id: 'fox',      name: 'The Fox Shrine',              x: -750, z:   680, radius: 150, facing: Math.PI * 0.75 },
-        { id: 'grove',    name: 'Sakura Blossom Grove',        x:    0, z:    90, radius: 210, facing: Math.PI,        guardian: 1, lantern: 'about',      lanternOffset: { x: -65, z: -110 } },
-        { id: 'river',    name: 'River Crossing',              x:  750, z:   490, radius: 160, facing: Math.PI * 1.25, guardian: 2, lantern: 'experience', lanternOffset: { x:  65, z: -100 } },
-        { id: 'torii',    name: 'Sunken Torii Chasm',          x: -140, z:  -400, radius: 160, facing: Math.PI,        guardian: 3, lantern: 'skills',     lanternOffset: { x: -50, z: -105 } },
-        { id: 'gate',     name: 'Ancient Gate & Lotus Pond',   x: -990, z:  -760, radius: 190, facing: Math.PI * 0.85, guardian: 4, lantern: 'projects',   lanternOffset: { x:  50, z: -115 } },
-        { id: 'werewolf', name: 'Shadow Woods',                x:  990, z:  -680, radius: 220, facing: Math.PI * 1.15 },
-        { id: 'summit',   name: 'Pagoda Mountain Peak',        x:    0, z: -1390, radius: 250, facing: Math.PI,        guardian: 5, lantern: 'contact',    lanternOffset: { x:   0, z: -150 } },
+        { id: 'landing',  name: 'Awakening Beach',             x:    0, z:   220, radius: 36, facing: Math.PI },
+        { id: 'fox',      name: 'The Fox Shrine',              x: -135, z:   115, radius: 28, facing: Math.PI * 0.75 },
+        { id: 'grove',    name: 'Sakura Blossom Grove',        x:    0, z:    15, radius: 38, facing: Math.PI,        guardian: 1, lantern: 'about',      lanternOffset: { x: -12, z: -20 } },
+        { id: 'river',    name: 'River Crossing',              x:  130, z:    80, radius: 28, facing: Math.PI * 1.25, guardian: 2, lantern: 'experience', lanternOffset: { x:  12, z: -18 } },
+        { id: 'torii',    name: 'Sunken Torii Chasm',          x:  -25, z:   -70, radius: 28, facing: Math.PI,        guardian: 3, lantern: 'skills',     lanternOffset: { x:  -9, z: -18 } },
+        { id: 'gate',     name: 'Ancient Gate & Lotus Pond',   x: -165, z:  -130, radius: 32, facing: Math.PI * 0.85, guardian: 4, lantern: 'projects',   lanternOffset: { x:   9, z: -20 } },
+        { id: 'werewolf', name: 'Shadow Woods',                x:  165, z:  -115, radius: 35, facing: Math.PI * 1.15 },
+        { id: 'summit',   name: 'Pagoda Mountain Peak',        x:    0, z:  -235, radius: 42, facing: Math.PI,        guardian: 5, lantern: 'contact',    lanternOffset: { x:   0, z: -25 } },
     ],
 
     // Stone and dirt paths linking the zones
@@ -35,24 +35,24 @@ export const WorldLayout = {
         [ 'gate',     'summit' ],
         [ 'werewolf', 'summit' ],
     ],
-    pathWidth: 32,
+    pathWidth: 9,
 
     // Island coastline shape: returns the island radius (in metres from origin) at polar angle theta
     getIslandRadius(angle)
     {
-        // Base radius 1,480m (~3,000m island diameter) with natural organic harmonic bays & capes
-        let r = 1480
-            + 85 * Math.sin(angle * 3 + 0.4)
-            + 65 * Math.cos(angle * 5 - 1.1)
-            + 35 * Math.sin(angle * 7 + 2.0)
+        // Base radius 260m (~520-550m island diameter) with natural organic harmonic bays & capes
+        let r = 260
+            + 15 * Math.sin(angle * 3 + 0.4)
+            + 12 * Math.cos(angle * 5 - 1.1)
+            + 6 * Math.sin(angle * 7 + 2.0)
 
         // Broader, flatter beach shelf to the south (angle around +PI/2)
         if(angle > 0.4 && angle < 2.7)
         {
-            r += 75 * Math.sin((angle - 0.4) / 2.3 * Math.PI)
+            r += 14 * Math.sin((angle - 0.4) / 2.3 * Math.PI)
         }
 
-        return Math.min(1650, Math.max(1320, r))
+        return Math.min(290, Math.max(230, r))
     },
 
     // Check if coordinates (x, z) are on the dry island landmass
@@ -63,23 +63,23 @@ export const WorldLayout = {
         return dist < this.getIslandRadius(angle)
     },
 
-    // River flowing from the northern mountain waterfall down east past River Crossing into the sea
+    // River flowing from northern mountain waterfall down east past River Crossing into the sea
     river: {
-        width: 80,
+        width: 14,
         points: [
-            { x:  135, z: -1170 },
-            { x:  405, z:  -810 },
-            { x:  720, z:  -270 },
-            { x:  855, z:   225 },
-            { x:  990, z:   585 },
-            { x: 1300, z:   945 },
-            { x: 1750, z:  1260 },
+            { x:  25, z: -200 },
+            { x:  70, z: -140 },
+            { x: 125, z:  -45 },
+            { x: 150, z:   40 },
+            { x: 175, z:  100 },
+            { x: 230, z:  165 },
+            { x: 300, z:  220 },
         ],
     },
 
     // Lotus Pond in the northwest beside the Ancient Gate
     ponds: [
-        { x: -990, z: -900, radius: 155 },
+        { x: -165, z: -155, radius: 28 },
     ],
 
     getArena(id)
@@ -114,15 +114,7 @@ export const WorldLayout = {
 
     /**
      * Compute ground elevation (Y in world metres) for any (x, z) coordinates.
-     * Evaluated identically on CPU (physics, player hover, trees, landmarks) and in shaders.
-     * Features:
-     * - South shoreline at Y = 0 to 2m (gentle beach shelf at Awakening Beach)
-     * - Central Plains & Sakura Blossom Grove at Y = 12 to 16m with rolling hills
-     * - Western Hill Region (Fox Shrine & Ancient Gate) at Y = 20 to 35m
-     * - Shadow Woods eastern rocky crags at Y = 30 to 48m
-     * - Pagoda Mountain Peak soaring to Y = 85 to 95m at the northern summit
-     * - Curvy organic undulations (no flat tabletop ground anywhere!)
-     * - Carved river gorge and sunken lotus pond basin
+     * Evaluated identically on CPU and in shaders.
      */
     getElevation(x, z)
     {
@@ -134,71 +126,68 @@ export const WorldLayout = {
         if(dist >= islandR)
         {
             const oceanDist = dist - islandR
-            return Math.max(-12, - 0.4 - oceanDist * 0.08)
+            return Math.max(-12, - 0.4 - oceanDist * 0.12)
         }
 
         // Coastal beach shelf (smooth ramp from sea level inland)
         const coastDist = islandR - dist
-        const coastFactor = Math.min(1, Math.max(0, coastDist / 65))
+        const coastFactor = Math.min(1, Math.max(0, coastDist / 20))
 
         // 2. Continental Northward Rise:
-        // Awakening Beach (Z = 1300): south shore
-        // Northern mountain range (Z = -1300): peak massif
-        const northProgress = Math.min(1, Math.max(0, (1350 - z) / 2650))
-        let baseElevation = Math.pow(northProgress, 1.8) * 48 // climbs from 0 to 48m
+        // Awakening Beach (Z = 220): south shore
+        // Northern mountain range (Z = -235): peak massif
+        const northProgress = Math.min(1, Math.max(0, (230 - z) / 465))
+        let baseElevation = Math.pow(northProgress, 1.8) * 16 // climbs from 0 to 16m
 
-        // 3. Pagoda Mountain Massif (Northern summit area: X: 0, Z: -1300)
-        const mountainDist = Math.hypot(x, z - (-1250))
-        if(mountainDist < 580)
+        // 3. Pagoda Mountain Massif (Northern summit area: X: 0, Z: -235)
+        const mountainDist = Math.hypot(x, z - (-230))
+        if(mountainDist < 110)
         {
-            const mtFactor = 1 - mountainDist / 580
-            // Dramatic steep mountain peak rising up to +88m summit
-            baseElevation += Math.pow(mtFactor, 1.5) * 44
+            const mtFactor = 1 - mountainDist / 110
+            baseElevation += Math.pow(mtFactor, 1.5) * 22
         }
 
         // 4. Western Hill Region (Fox Shrine & Ancient Gate foothills)
-        const westDist = Math.hypot(x - (-780), z - 50)
-        if(westDist < 750)
+        const westDist = Math.hypot(x - (-140), z - 10)
+        if(westDist < 140)
         {
-            const westFactor = 1 - westDist / 750
-            baseElevation += Math.pow(westFactor, 1.6) * 18
+            const westFactor = 1 - westDist / 140
+            baseElevation += Math.pow(westFactor, 1.6) * 6
         }
 
-        // 5. Eastern Shadow Woods Craggy Foothills (X: 950, Z: -600)
-        const eastDist = Math.hypot(x - 950, z - (-600))
-        if(eastDist < 620)
+        // 5. Eastern Shadow Woods Craggy Foothills (X: 165, Z: -115)
+        const eastDist = Math.hypot(x - 165, z - (-115))
+        if(eastDist < 120)
         {
-            const eastFactor = 1 - eastDist / 620
-            baseElevation += Math.pow(eastFactor, 1.5) * 22
+            const eastFactor = 1 - eastDist / 120
+            baseElevation += Math.pow(eastFactor, 1.5) * 8
         }
 
-        // 6. Organic Curvy Undulations & Rolling Hills (multi-frequency harmonics)
-        // Eliminates flat tabletop surfaces everywhere across the realm
-        const rollingWaves = Math.sin(x * 0.0085 + 0.5) * Math.cos(z * 0.0078 - 0.3) * 4.2
-                           + Math.sin((x + z) * 0.017) * 2.0
-                           + Math.cos((x - z) * 0.032) * 1.0
+        // 6. Organic Curvy Undulations & Rolling Hills
+        const rollingWaves = Math.sin(x * 0.045 + 0.5) * Math.cos(z * 0.042 - 0.3) * 0.8
+                           + Math.sin((x + z) * 0.085) * 0.4
 
-        let total = (baseElevation + rollingWaves) * coastFactor
+        let total = (baseElevation + 0.6 + rollingWaves) * coastFactor
 
-        // 7. Carve River Gorge (sloped natural canyon 3.5 to 6m deep)
+        // 7. Carve River Gorge (sloped natural canyon)
         const riverDist = this.getRiverDistance(x, z)
         const riverHalfWidth = this.river.width * 0.9
         if(riverDist < riverHalfWidth)
         {
             const riverFactor = 1 - riverDist / riverHalfWidth
-            const riverDepression = (3.5 + Math.sin(z * 0.01) * 1.0) * Math.pow(riverFactor, 1.5)
+            const riverDepression = 2.0 * Math.pow(riverFactor, 1.5)
             total -= riverDepression
         }
 
-        // 8. Carve Lotus Pond Basin (sunken mountain lake)
+        // 8. Carve Lotus Pond Basin (sunken lake)
         const pond = this.ponds[0]
         const pondDist = Math.hypot(x - pond.x, z - pond.z)
         if(pondDist < pond.radius * 1.3)
         {
             const pondFactor = Math.min(1, Math.max(0, 1 - pondDist / (pond.radius * 1.3)))
-            total -= Math.pow(pondFactor, 1.4) * 4.5
+            total -= Math.pow(pondFactor, 1.4) * 2.5
         }
 
-        return Math.max(-10, total)
+        return Math.max(-8, total)
     },
 }

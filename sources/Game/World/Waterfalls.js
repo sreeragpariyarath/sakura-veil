@@ -1,7 +1,8 @@
 import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
 import { WorldLayout } from './WorldLayout.js'
-import { color, float, Fn, mix, sin, smoothstep, texture, time, uniform, uv, vec2, vec3, vec4 } from 'three/tsl'
+import { color, float, Fn, mix, sin, smoothstep, texture, time, uniform, uv, vec2, vec3 } from 'three/tsl'
+import { MeshDefaultMaterial } from '../Materials/MeshDefaultMaterial.js'
 
 /**
  * Waterfalls: Cascading mountain waterfalls and gorge cataracts.
@@ -29,7 +30,7 @@ export class Waterfalls
     setMaterial()
     {
         // Animated cascading water shader in TSL
-        const waterColorNode = Fn(() =>
+        const waterfallRgbNode = Fn(() =>
         {
             const vUv = uv()
 
@@ -45,75 +46,93 @@ export class Waterfalls
             const foamMask = noise1.add(noise2.mul(0.6)).mul(0.65)
             const foam = smoothstep(0.42, 0.72, foamMask)
 
-            // Edge transparency fade
-            const edgeFade = sin(vUv.x.mul(Math.PI))
-
             // Colors: clear turquoise water and pure white aeration foam
             const waterBase = color('#38bdf8')
             const waterFoam = color('#ffffff')
-            const finalRgb = mix(waterBase, waterFoam, foam)
-
-            const alpha = mix(float(0.72), float(0.98), foam).mul(edgeFade)
-
-            return vec4(finalRgb, alpha)
+            return mix(waterBase, waterFoam, foam)
         })()
 
-        this.waterfallMaterial = new THREE.MeshBasicNodeMaterial({
-            colorNode: waterColorNode,
+        const waterfallAlphaNode = Fn(() =>
+        {
+            const vUv = uv()
+            const edgeFade = sin(vUv.x.mul(Math.PI))
+            return float(0.85).mul(edgeFade)
+        })()
+
+        this.waterfallMaterial = new MeshDefaultMaterial({
+            colorNode: waterfallRgbNode,
+            alphaNode: waterfallAlphaNode,
             transparent: true,
+            alphaTest: 0,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            hasFog: true,
+            hasWater: false,
+            hasLightBounce: false,
+            hasCoreShadows: false,
+            hasDropShadows: false
         })
 
         // Plunge pool foaming ripple material
-        const rippleColorNode = Fn(() =>
+        const rippleRgbNode = Fn(() =>
         {
             const vUv = uv()
             const centerDist = vUv.sub(vec2(0.5)).length()
             const expandingWave = sin(centerDist.mul(35.0).sub(time.mul(5.0)))
-            const ringMask = smoothstep(0.1, 0.45, centerDist).mul(smoothstep(0.5, 0.35, centerDist))
 
             const foamColor = color('#ffffff')
             const poolColor = color('#38bdf8')
-            const rgb = mix(poolColor, foamColor, expandingWave.mul(0.5).add(0.5))
-
-            return vec4(rgb, ringMask.mul(0.75))
+            return mix(poolColor, foamColor, expandingWave.mul(0.5).add(0.5))
         })()
 
-        this.rippleMaterial = new THREE.MeshBasicNodeMaterial({
-            colorNode: rippleColorNode,
+        const rippleAlphaNode = Fn(() =>
+        {
+            const vUv = uv()
+            const centerDist = vUv.sub(vec2(0.5)).length()
+            const ringMask = smoothstep(0.05, 0.45, centerDist).mul(smoothstep(0.5, 0.35, centerDist))
+            return ringMask.mul(0.75)
+        })()
+
+        this.rippleMaterial = new MeshDefaultMaterial({
+            colorNode: rippleRgbNode,
+            alphaNode: rippleAlphaNode,
             transparent: true,
+            alphaTest: 0,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            hasFog: true,
+            hasWater: false,
+            hasLightBounce: false,
+            hasCoreShadows: false,
+            hasDropShadows: false
         })
     }
 
     setGreatMountainWaterfall()
     {
-        // Great Mountain Waterfall: drops from high cliff shelf (Y ~ 72m) to river pool (Y ~ 26m)
-        const topX = 110
-        const topZ = -1180
-        const topY = 72
+        // Great Mountain Waterfall: drops from high cliff shelf to river pool
+        const topX = 20
+        const topZ = -208
+        const topY = WorldLayout.getElevation(topX, topZ) + 8
 
-        const botX = 135
-        const botZ = -1160
-        const botY = 27
+        const botX = 25
+        const botZ = -198
+        const botY = WorldLayout.getElevation(botX, botZ)
 
-        const height = topY - botY
-        const width = 28
+        const height = Math.max(6, topY - botY)
+        const width = 8
 
         // Curved waterfall sheet geometry
-        const segments = 24
+        const segments = 16
         const geometry = new THREE.PlaneGeometry(width, height, 4, segments)
 
         // Curve outward slightly as water arcs off the cliff
         const posAttr = geometry.attributes.position
         for(let i = 0; i < posAttr.count; i++)
         {
-            const y = posAttr.getY(i) // from -height/2 to +height/2
-            const normY = (y + height * 0.5) / height // 0 at bottom, 1 at top
-            // Parabolic arc outward
-            const outward = Math.sin(normY * Math.PI) * 4.5
+            const y = posAttr.getY(i)
+            const normY = (y + height * 0.5) / height
+            const outward = Math.sin(normY * Math.PI) * 1.5
             posAttr.setZ(i, posAttr.getZ(i) + outward)
         }
         geometry.computeVertexNormals()
@@ -123,57 +142,33 @@ export class Waterfalls
         waterfallMesh.rotation.y = Math.atan2(botX - topX, botZ - topZ)
         this.group.add(waterfallMesh)
 
-        // Second overlapping stream for volume depth
-        const waterfallMesh2 = waterfallMesh.clone()
-        waterfallMesh2.scale.set(0.85, 0.98, 1)
-        waterfallMesh2.position.x += 3
-        waterfallMesh2.position.z -= 2
-        this.group.add(waterfallMesh2)
-
         // Plunge pool expanding ripple disk
-        const poolGeom = new THREE.CircleGeometry(32, 32)
+        const poolGeom = new THREE.CircleGeometry(8, 24)
         poolGeom.rotateX(-Math.PI * 0.5)
         const poolMesh = new THREE.Mesh(poolGeom, this.rippleMaterial)
         poolMesh.position.set(botX, botY + 0.1, botZ)
         this.group.add(poolMesh)
 
-        // Clustered rock boulders flanking the waterfall
-        const rockGeom = new THREE.DodecahedronGeometry(1, 1)
-        const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a6370, roughness: 0.85 })
-
-        const boulderOffsets = [
-            [ -18, 0, -4, 9 ], [ 18, 0, 4, 10 ],
-            [ -14, 18, -6, 12 ], [ 16, 20, 2, 11 ],
-            [ -12, 36, -8, 14 ], [ 14, 38, 0, 13 ],
-        ]
-        for(const [ ox, oy, oz, scale ] of boulderOffsets)
-        {
-            const boulder = new THREE.Mesh(rockGeom, rockMat)
-            boulder.position.set(botX + ox, botY + oy, botZ + oz)
-            boulder.scale.set(scale, scale * 1.3, scale * 0.9)
-            boulder.castShadow = true
-            boulder.receiveShadow = true
-            this.group.add(boulder)
-        }
+        // Bulky low-poly rock boulders removed per design specification
     }
 
     setGorgeCataracts()
     {
-        // Stepped cascade further down the river gorge (X: 380, Z: -830)
-        const cascadeGeom = new THREE.PlaneGeometry(35, 14, 3, 8)
+        // Stepped cascade further down the river gorge (X: 70, Z: -140)
+        const cascadeGeom = new THREE.PlaneGeometry(10, 4, 3, 8)
         cascadeGeom.rotateX(-Math.PI * 0.2)
 
         const cascadeMesh = new THREE.Mesh(cascadeGeom, this.waterfallMaterial)
-        const cy = WorldLayout.getElevation(380, -830)
-        cascadeMesh.position.set(380, cy + 4, -830)
+        const cy = WorldLayout.getElevation(68, -145)
+        cascadeMesh.position.set(68, cy + 1.2, -145)
         cascadeMesh.rotation.y = 0.5
         this.group.add(cascadeMesh)
 
         // Foam splash disk
-        const splashGeom = new THREE.CircleGeometry(24, 24)
+        const splashGeom = new THREE.CircleGeometry(7, 20)
         splashGeom.rotateX(-Math.PI * 0.5)
         const splashMesh = new THREE.Mesh(splashGeom, this.rippleMaterial)
-        splashMesh.position.set(390, cy + 0.1, -815)
+        splashMesh.position.set(70, cy + 0.1, -140)
         this.group.add(splashMesh)
     }
 }
