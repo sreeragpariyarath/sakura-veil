@@ -92,6 +92,7 @@ export class World
             this.waterfalls = safe('waterfalls', () => new Waterfalls())
             this.riverSystem = safe('riverSystem', () => new RiverSystem())
             this.lotusPond = safe('lotusPond', () => new LotusPond())
+            this.rockFormations = safe('rockFormations', () => new RockFormations())
             this.areas = safe('areas', () => new Areas())
         }
         else if(step === 2)
