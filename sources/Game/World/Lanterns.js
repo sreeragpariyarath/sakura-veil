@@ -18,16 +18,17 @@ export class Lanterns
     {
         return WorldLayout.arenas
             .filter(arena => arena.lantern)
-            .map(arena => ({
-                id: arena.lantern,
-                label: arena.name,
-                position: new THREE.Vector3(
-                    arena.x + (arena.lanternOffset?.x ?? 0),
-                    0,
-                    arena.z + (arena.lanternOffset?.z ?? 0)
-                ),
-                rotation: arena.facing ?? 0
-            }))
+            .map(arena => {
+                const lx = arena.x + (arena.lanternOffset?.x ?? 0)
+                const lz = arena.z + (arena.lanternOffset?.z ?? 0)
+                const ly = WorldLayout.getElevation(lx, lz)
+                return {
+                    id: arena.lantern,
+                    label: arena.name,
+                    position: new THREE.Vector3(lx, ly, lz),
+                    rotation: arena.facing ?? 0
+                }
+            })
     }
 
     constructor()

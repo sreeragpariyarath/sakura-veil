@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
-import { color, float, Fn, materialNormal, min, mix, mul, normalWorld, positionLocal, positionWorld, texture, uniform, uv, vec3, vec4 } from 'three/tsl'
+import { color, float, Fn, mix, normalWorld, positionWorld, select, sin, smoothstep, step, texture, uniform, uv, vec2, vec3, vec4 } from 'three/tsl'
 import { MeshDefaultMaterial } from '../Materials/MeshDefaultMaterial.js'
 import { WorldLayout } from './WorldLayout.js'
 
@@ -31,99 +31,95 @@ export class Floor
 
     setVisual()
     {
-        // Padded well beyond the strict optimal-area radius: tall objects
-        // (e.g. sakura trees) stay visible in silhouette above the ground's
-        // horizon even when their base sits past the tightly-computed view
-        // radius, so the ground must extend further than "just enough".
-        this.size = Math.round(this.game.view.optimalArea.radius * 3.2) + 30
-        this.halfSize = this.size * 0.5
-        this.cellSize = 1.5
-        this.subdivisions = this.size / this.cellSize
+        // Full realm scale: 3,600 x 3,600m static 3D terrain
+        this.size = WorldLayout.size
+        this.subdivisions = 180 // ~20m vertex grid (32,761 vertices)
 
-        // Geometry
-        let geometry = new THREE.PlaneGeometry(this.size, this.size, this.subdivisions, this.subdivisions)
+        // 1. Geometry with real physical 3D elevation evaluated across all vertices
+        const geometry = new THREE.PlaneGeometry(this.size, this.size, this.subdivisions, this.subdivisions)
         geometry.rotateX(-Math.PI * 0.5)
-        geometry.deleteAttribute('normal')
 
-        // Terrain data
+        const posAttr = geometry.attributes.position
+        for(let i = 0; i < posAttr.count; i++)
+        {
+            const x = posAttr.getX(i)
+            const z = posAttr.getZ(i)
+            const y = WorldLayout.getElevation(x, z)
+            posAttr.setY(i, y)
+        }
+        geometry.computeVertexNormals()
+
+        // 2. Terrain Data & Visual Colors
         const terrainData = this.game.terrain.terrainNode(positionWorld.xz)
-        const slabHighColor = uniform(color('#ffcf8b'))
-        const slabLowColor = uniform(color('#a87762'))
-        const slabTextureFrequency = uniform(0.175)
-        const slabNoiseFrequency = uniform(0.03)
+
         const colorNode = Fn(() =>
         {
             const baseColor = this.game.terrain.colorNode(terrainData)
-            
-            const slabTerrain = terrainData.r
-            const slabNoiseUv = positionWorld.xz.mul(slabNoiseFrequency)
-            const slabNoise = texture(this.game.noises.perlin, slabNoiseUv).r
-            const slabsTexture = texture(this.game.resources.floorSlabsTexture, positionWorld.xz.mul(slabTextureFrequency)).r
-            const slabColor = mix(slabLowColor, slabHighColor, slabsTexture)
-            // return vec3(slabsTexture.mul(slabStrength))
 
-            const slab = slabTerrain.mul(slabNoise)
-            // return vec3(slab)
-            
-            const finalColor = mix(baseColor, slabColor, slab)
+            // Procedural Organic Flagstones (cobblestone pavers with irregular rounded shapes)
+            const stoneFreq = uniform(0.38)
+            const stoneUv = positionWorld.xz.mul(stoneFreq)
+            const stoneNoise = texture(this.game.noises.perlin, stoneUv.mul(0.55)).r
+            const stoneNoiseFine = texture(this.game.noises.perlin, stoneUv.mul(2.1)).r
+
+            const perturbedUv = stoneUv.add(vec2(stoneNoise, stoneNoiseFine).sub(0.5).mul(0.38))
+            const stoneGrid = sin(perturbedUv.x.mul(Math.PI)).mul(sin(perturbedUv.y.mul(Math.PI))).abs()
+            const stoneGroove = smoothstep(0.05, 0.24, stoneGrid)
+
+            // Warm weathered granite & sandstone tints
+            const stoneColorWarm = color('#d4c0ab')
+            const stoneColorCool = color('#9e8c79')
+            const stoneSurface = mix(stoneColorCool, stoneColorWarm, stoneNoiseFine)
+
+            // Loam earth & moss in cracks
+            const crackDirt = color('#3d2c1f')
+            const crackMoss = color('#355a22')
+            const crackColor = mix(crackDirt, crackMoss, stoneNoise.mul(0.6))
+            const flagstoneColor = mix(crackColor, stoneSurface, stoneGroove)
+
+            // Falling pink sakura petals on the stone paths
+            const petalUv = positionWorld.xz.mul(1.4)
+            const petalNoise = texture(this.game.noises.perlin, petalUv).r
+            const petalMask = smoothstep(0.77, 0.86, petalNoise)
+            const petalColor = color('#ff9fc2')
+            const pathColor = mix(flagstoneColor, petalColor, petalMask.mul(0.85))
+
+            // Keep Awakening Beach (south coast Z > 1050) as pure golden sand
+            const isSouthBeach = positionWorld.z.greaterThan(1050)
+            const pathMask = terrainData.r.mul(select(isSouthBeach, 0.0, 1.0))
+            const blendedPath = mix(baseColor, pathColor, pathMask.smoothstep(0.12, 0.72))
+
+            // Wildflower speckles across meadows (soft white daisies & sakura blossom specks)
+            const meadowUv = positionWorld.xz.mul(0.9)
+            const flowerNoise = texture(this.game.noises.perlin, meadowUv).r
+            const flowerMask = smoothstep(0.82, 0.90, flowerNoise).mul(terrainData.g)
+            const flowerColor = mix(color('#fffdf2'), color('#ffb3cb'), step(0.86, flowerNoise))
+            const finalColor = mix(blendedPath, flowerColor, flowerMask.mul(0.88))
+
             return finalColor
         })()
 
-        // Material
+        // Material using real vertex normals, no light bounce overexposure, no water blowout
         const material = new MeshDefaultMaterial({
             colorNode: colorNode,
-            normalNode: vec3(0, 1, 0),
+            normalNode: normalWorld,
             shadowNode: terrainData.g,
             hasWater: false,
             hasLightBounce: false,
+            hasFog: true,
             wireframe: false
         })
-        // Displacement
-        material.positionNode = Fn(() =>
-        {
-            const uvDim = min(min(uv().x, uv().y).mul(20), 1)
-
-            const newPosition = positionLocal
-            newPosition.y.addAssign(terrainData.b.mul(-1.5).mul(uvDim))
-
-            return newPosition
-        })()
 
         // Mesh
         this.mesh = new THREE.Mesh(geometry, material)
         this.mesh.receiveShadow = true
-        // this.mesh.castShadow = true
+        this.mesh.name = 'floor'
         this.game.scene.add(this.mesh)
-
-        // Resize
-        this.game.viewport.events.on('throttleChange', () =>
-        {
-            this.size = Math.round(this.game.view.optimalArea.radius * 3.2) + 30
-            this.halfSize = this.size * 0.5
-            this.subdivisions = this.size
-            
-            geometry.dispose()
-            
-            geometry = new THREE.PlaneGeometry(this.size, this.size, this.subdivisions, this.subdivisions)
-            geometry.rotateX(-Math.PI * 0.5)
-            geometry.deleteAttribute('normal')
-
-            this.mesh.geometry = geometry
-        }, 2)
-
-        if(this.game.debug.active)
-        {
-            this.debugPanel.addBinding(slabTextureFrequency, 'value', { label: 'slabTextureFrequency', min: 0, max: 1, step: 0.001 })
-            this.debugPanel.addBinding(slabNoiseFrequency, 'value', { label: 'slabNoiseFrequency', min: 0, max: 0.1, step: 0.001 })
-            this.game.debug.addThreeColorBinding(this.debugPanel, slabHighColor.value, 'slabHighColor')
-            this.game.debug.addThreeColorBinding(this.debugPanel, slabLowColor.value, 'slabLowColor')
-        }
     }
 
     setPhysical()
     {
-        // One flat slab under the whole realm, top face at y = 0. Rei flies, so the shallow
-        // visual dips of the river and pond (see the displacement above) don't need matching colliders.
+        // Physical floor collider
         const halfExtent = WorldLayout.size * 0.5 + 50
 
         const object = this.game.objects.add(
@@ -142,9 +138,9 @@ export class Floor
 
     setBoundary()
     {
-        // Invisible walls at WorldLayout.boundary, taller than PhysicsFlight.maxAltitude
+        // Invisible walls at WorldLayout.boundary, taller than maximum flight altitude
         const boundary = WorldLayout.boundary
-        const halfHeight = 40
+        const halfHeight = 120
         const halfThickness = 1
         const halfLength = boundary + halfThickness
 
@@ -166,7 +162,6 @@ export class Floor
 
     update()
     {
-        this.mesh.position.x = Math.round(this.game.view.optimalArea.position.x / this.cellSize) * this.cellSize
-        this.mesh.position.z = Math.round(this.game.view.optimalArea.position.z / this.cellSize) * this.cellSize
+        // Terrain is a static 3,600 x 3,600m mesh covering the full world
     }
 }

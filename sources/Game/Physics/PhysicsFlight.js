@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
 import { Events } from '../Events.js'
 import { lerp } from '../utilities/maths.js'
+import { WorldLayout } from '../World/WorldLayout.js'
 
 export class PhysicsFlight
 {
@@ -21,7 +22,7 @@ export class PhysicsFlight
         this.deceleration = 7
         this.climbSpeed = 6
         this.verticalAcceleration = 6
-        this.maxAltitude = 40
+        this.maxAltitude = 180
 
         this.yaw = 0
         this.bank = 0
@@ -217,6 +218,28 @@ export class PhysicsFlight
         const verticalTarget = verticalInput * this.climbSpeed
         const verticalBlend = 1 - Math.exp(- this.verticalAcceleration * delta)
         newVelocity.y = current.y + (verticalTarget - current.y) * verticalBlend
+
+        // Terrain Awareness & Contour Following:
+        // Automatically smoothly glide over hills and mountain slopes
+        const groundHeight = WorldLayout.getElevation(this.position.x, this.position.z)
+        const minAltitude = groundHeight + 1.2
+        const idealHover = groundHeight + 2.6
+
+        if(this.position.y < minAltitude)
+        {
+            // Push up briskly if below minimum terrain altitude
+            const pushUp = (minAltitude - this.position.y) * 14.0
+            newVelocity.y = Math.max(newVelocity.y, pushUp)
+        }
+        else if(this.game.player.isMoving && verticalInput === 0)
+        {
+            // Smoothly lift as terrain ascends ahead
+            if(this.position.y < idealHover)
+            {
+                const hillLift = (idealHover - this.position.y) * 5.0
+                newVelocity.y = Math.max(newVelocity.y, hillLift)
+            }
+        }
 
         // Ceiling
         if(this.position.y > this.maxAltitude && newVelocity.y > 0)

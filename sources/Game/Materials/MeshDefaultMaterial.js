@@ -29,7 +29,7 @@ export class MeshDefaultMaterial extends THREE.MeshLambertNodeMaterial
         this.hasDropShadows = parameters.hasDropShadows ?? true
         this.hasLightBounce = parameters.hasLightBounce ?? true
         this.hasFog = parameters.hasFog ?? true
-        this.hasWater = parameters.hasWater ?? true
+        this.hasWater = parameters.hasWater ?? false
         this.hasReveal = parameters.hasReveal ?? true
 
         this._colorNode = parameters.colorNode ?? color(0xffffff)

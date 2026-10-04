@@ -5,6 +5,7 @@ import { lerp, remap, remapClamp } from '../utilities/maths.js'
 import { hashBlur } from 'three/examples/jsm/tsl/display/hashBlur.js'
 import { MeshDefaultMaterial } from '../Materials/MeshDefaultMaterial.js'
 import { boxBlur } from 'three/examples/jsm/tsl/display/boxBlur.js'
+import { WorldLayout } from './WorldLayout.js'
 
 export class WaterSurface
 {
@@ -64,7 +65,7 @@ export class WaterSurface
 
     setGeometry()
     {
-        this.geometry = new THREE.PlaneGeometry(1, 1, 1, 1)
+        this.geometry = new THREE.PlaneGeometry(WorldLayout.size, WorldLayout.size, 1, 1)
         this.geometry.rotateX(- Math.PI * 0.5)
     }
 
@@ -380,21 +381,9 @@ export class WaterSurface
     setMesh()
     {
         this.mesh = new THREE.Mesh(this.geometry, this.material)
-        
-        const halfExtent = this.game.view.optimalArea.radius
-        this.mesh.scale.setScalar(halfExtent * 2)
-
-        this.mesh.position.y = this.game.water.surfaceElevation
-        this.mesh.castShadow = true
+        this.mesh.position.set(0, this.game.water.surfaceElevation, 0)
         this.mesh.receiveShadow = true
-        // this.mesh.renderOrder = -1
         this.game.scene.children.unshift(this.mesh)
-
-        this.game.viewport.events.on('throttleChange', () =>
-        {
-            const halfExtent = this.game.view.optimalArea.radius
-            this.mesh.scale.setScalar(halfExtent * 2)
-        }, 2)
     }
 
     setIce()
@@ -422,9 +411,6 @@ export class WaterSurface
         this.iceRatioBinding.update()
         this.splashesRatioBinding.update()
 
-        // Mesh
-        this.mesh.position.x = this.game.view.optimalArea.position.x
-        this.mesh.position.z = this.game.view.optimalArea.position.z
         this.mesh.renderOrder = 1
 
         // Material

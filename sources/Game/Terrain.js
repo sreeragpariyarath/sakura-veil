@@ -83,9 +83,9 @@ export class Terrain
         drawIslandPath(-55)
         context.fill()
 
-        // 4. Awakening Beach Cove (wide sandy beach on the south coast, no grass)
+        // 4. Awakening Beach Cove (wide pristine sandy beach on the south coast, no grass, no stone slabs)
         context.filter = `blur(${Math.round(25 * pixelsPerMetre)}px)`
-        context.fillStyle = 'rgb(220, 120, 0)'
+        context.fillStyle = 'rgb(0, 0, 0)'
         context.beginPath()
         context.ellipse(toPixel(0), toPixel(1300), 520 * pixelsPerMetre, 220 * pixelsPerMetre, 0, 0, Math.PI * 2)
         context.fill()
@@ -172,9 +172,11 @@ export class Terrain
         const context = canvas.getContext('2d')
 
         this.colors = [
-            { stop: 0.1, value: '#ffa94e' },
-            { stop: 0.3, value: '#5bc2b9' },
-            { stop: 0.9, value: '#13375f' },
+            { stop: 0.05, value: '#f4e0b9' }, // Warm golden beach sand (dry land, b = 0)
+            { stop: 0.18, value: '#debfa2' }, // Wet shoreline sand transition
+            { stop: 0.35, value: '#38bdf8' }, // Shallow crystal turquoise surf
+            { stop: 0.60, value: '#0ea5e9' }, // Sparkling azure coastal lagoon
+            { stop: 0.92, value: '#0f3b60' }, // Deep sapphire ocean
         ]
 
         const update = () =>
@@ -211,7 +213,7 @@ export class Terrain
 
     setNodes()
     {
-        this.grassColorUniform = uniform(color('#b8b62e'))
+        this.grassColorUniform = uniform(color('#5ea83b'))
         this.tracksDelta = uniform(vec2(0))
 
         const worldPositionToUvNode = Fn(([position]) =>
@@ -236,13 +238,24 @@ export class Terrain
         
         this.colorNode = Fn(([terrainData]) =>
         {
-            // Dirt and water
-            const baseColor = texture(this.gradientTexture, vec2(0, terrainData.b.oneMinus()))
+            // Direct robust TSL colors (no fragile 1x16 canvas texture lookups):
+            // Sand: warm golden anime beach sand
+            const sandColor = color('#f0d8a8')
+            const wetSandColor = color('#d0ab7a')
+            // Water: crystal clear turquoise surface to deep ocean sapphire
+            const waterColor = color('#22b8cf')
+            const deepOceanColor = color('#0c2f52')
 
-            // Grass
-            baseColor.assign(mix(baseColor, this.grassColorUniform, terrainData.g))
+            const dryGroundColor = mix(sandColor, wetSandColor, terrainData.r.mul(0.35))
+            const oceanColor = mix(waterColor, deepOceanColor, terrainData.b)
 
-            return baseColor.rgb
+            // Interpolate between dry ground and ocean by water depth (B channel)
+            const baseColor = mix(dryGroundColor, oceanColor, terrainData.b.smoothstep(0.06, 0.40))
+
+            // Grass (G channel)
+            const finalColor = mix(baseColor, this.grassColorUniform, terrainData.g.smoothstep(0.08, 0.45))
+
+            return finalColor.rgb
         })
 
         if(this.game.debug.active)

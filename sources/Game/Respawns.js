@@ -19,10 +19,11 @@ export class Respawns
         // Populate respawns from the world layout arenas
         for(const arena of WorldLayout.arenas)
         {
+            const elevation = WorldLayout.getElevation(arena.x, arena.z)
             const item = {
                 name: arena.id,
                 label: arena.name,
-                position: new THREE.Vector3(arena.x, 4, arena.z),
+                position: new THREE.Vector3(arena.x, elevation + 3.0, arena.z),
                 rotation: arena.facing ?? 0
             }
             this.items.set(arena.id, item)

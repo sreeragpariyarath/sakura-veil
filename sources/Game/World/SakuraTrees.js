@@ -130,22 +130,23 @@ export class SakuraTrees
                 if(Math.hypot(existing.position.x - x, existing.position.z - z) < 14)
                     return
             }
-            placements.push({ position: new THREE.Vector3(x, 0, z), scale, rotation })
+            const y = WorldLayout.getElevation(x, z)
+            placements.push({ position: new THREE.Vector3(x, y, z), scale, rotation })
         }
 
         // 1. Frame the perimeters of all arenas (trees ring outside the combat clearings)
         for(const arena of WorldLayout.arenas)
         {
-            const ringCount = arena.id === 'grove' ? 18 : 9
+            const ringCount = arena.id === 'grove' ? 32 : 16
             for(let i = 0; i < ringCount; i++)
             {
                 const angle = (i / ringCount) * Math.PI * 2 + 0.2
-                const dist = arena.radius + 8 + (i % 3) * 6
-                tryAdd(arena.x + Math.cos(angle) * dist, arena.z + Math.sin(angle) * dist, 1.2 + (i % 4) * 0.1)
+                const dist = arena.radius + 12 + (i % 3) * 8
+                tryAdd(arena.x + Math.cos(angle) * dist, arena.z + Math.sin(angle) * dist, 1.2 + (i % 4) * 0.15)
             }
         }
 
-        // 2. Line each path on both sides (forming grand cherry blossom avenues)
+        // 2. Line each path on both sides (forming grand, dense cherry blossom avenues)
         for(const [ idA, idB ] of WorldLayout.paths)
         {
             const a = WorldLayout.getArena(idA)
@@ -158,39 +159,57 @@ export class SakuraTrees
             const nx = - dz / dist // Normal perpendicular to path
             const nz = dx / dist
 
-            const steps = Math.floor(dist / 60)
+            const steps = Math.floor(dist / 26)
             for(let i = 1; i < steps; i++)
             {
                 const t = i / steps
                 const cx = a.x + dx * t
                 const cz = a.z + dz * t
 
-                // Left flank (placed outside the 32m wide path)
-                tryAdd(cx + nx * (36 + (i % 2) * 14), cz + nz * (36 + (i % 2) * 14), 1.3 + (i % 3) * 0.15)
+                // Left flank
+                tryAdd(cx + nx * (24 + (i % 2) * 10), cz + nz * (24 + (i % 2) * 10), 1.25 + (i % 3) * 0.18)
                 // Right flank
-                tryAdd(cx - nx * (36 + ((i + 1) % 2) * 14), cz - nz * (36 + ((i + 1) % 2) * 14), 1.3 + (i % 2) * 0.2)
+                tryAdd(cx - nx * (24 + ((i + 1) % 2) * 10), cz - nz * (24 + ((i + 1) % 2) * 10), 1.25 + (i % 2) * 0.22)
             }
         }
 
-        // 3. Dense clusters around the Sakura Grove (X: 0, Z: 90)
-        for(let ox = -250; ox <= 250; ox += 75)
+        // 3. Dense magical forest throughout Sakura Blossom Grove (X: 0, Z: 90)
+        for(let ox = -380; ox <= 380; ox += 38)
         {
-            for(let oz = -250; oz <= 250; oz += 75)
+            for(let oz = -380; oz <= 380; oz += 38)
             {
-                const jx = (Math.sin(ox * 3.7 + oz) * 0.5) * 20
-                const jz = (Math.cos(ox + oz * 4.1) * 0.5) * 20
-                tryAdd(0 + ox + jx, 90 + oz + jz, 1.4)
+                const jx = (Math.sin(ox * 3.7 + oz) * 0.5) * 18
+                const jz = (Math.cos(ox + oz * 4.1) * 0.5) * 18
+                tryAdd(ox + jx, 90 + oz + jz, 1.35 + ((ox + oz) % 3) * 0.15)
             }
         }
 
-        // 4. Distant perimeter treeline along the island coast/hills to frame the skyline
-        const perimeterSteps = 72
+        // 4. Awakening Beach Entrance Grove (flanking north trail from the beach)
+        for(let oz = 950; oz <= 1220; oz += 35)
+        {
+            tryAdd(-38 - ((oz % 2) * 12), oz, 1.4)
+            tryAdd( 38 + ((oz % 2) * 12), oz, 1.4)
+            tryAdd(-75, oz, 1.3)
+            tryAdd( 75, oz, 1.3)
+        }
+
+        // 5. Western Hills & Fox Shrine woods
+        for(let ox = -950; ox <= -550; ox += 48)
+        {
+            for(let oz = 500; oz <= 850; oz += 48)
+            {
+                tryAdd(ox, oz, 1.3)
+            }
+        }
+
+        // 6. Perimeter treeline framing the island skyline
+        const perimeterSteps = 120
         for(let i = 0; i < perimeterSteps; i++)
         {
             const angle = (i / perimeterSteps) * Math.PI * 2
-            // Keep the south sandy beach open
-            if(angle > 0.6 && angle < 2.5) continue
-            const r = WorldLayout.getIslandRadius(angle) - 60 - (i % 3) * 25
+            // Keep the south sandy beach surf open
+            if(angle > 0.8 && angle < 2.3) continue
+            const r = WorldLayout.getIslandRadius(angle) - 55 - (i % 3) * 20
             tryAdd(Math.cos(angle) * r, Math.sin(angle) * r, 1.5)
         }
 

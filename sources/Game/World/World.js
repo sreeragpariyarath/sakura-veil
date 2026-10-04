@@ -23,6 +23,11 @@ import { SakuraTrees } from './SakuraTrees.js'
 import { Lanterns } from './Lanterns.js'
 import { StoryText } from '../StoryText.js'
 import { LanternCounter } from '../LanternCounter.js'
+import { PagodaMountain } from './PagodaMountain.js'
+import { Waterfalls } from './Waterfalls.js'
+import { RiverSystem } from './RiverSystem.js'
+import { LotusPond } from './LotusPond.js'
+import { RockFormations } from './RockFormations.js'
 
 export class World
 {
@@ -83,6 +88,11 @@ export class World
                 this.storyText = safe('storyText', () => new StoryText())
                 this.lanternCounter = safe('lanternCounter', () => new LanternCounter())
             }
+            this.pagodaMountain = safe('pagodaMountain', () => new PagodaMountain())
+            this.waterfalls = safe('waterfalls', () => new Waterfalls())
+            this.riverSystem = safe('riverSystem', () => new RiverSystem())
+            this.lotusPond = safe('lotusPond', () => new LotusPond())
+            this.rockFormations = safe('rockFormations', () => new RockFormations())
             this.areas = safe('areas', () => new Areas())
         }
         else if(step === 2)
