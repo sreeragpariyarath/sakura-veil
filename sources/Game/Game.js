@@ -105,7 +105,7 @@ export class Game
             [ 'behindTheSceneStarsTexture', `behindTheScene/stars.${compressedTextureExtension}${cb}`,      compressedTextureFormat, (resource) => { resource.colorSpace = THREE.SRGBColorSpace; resource.minFilter = THREE.NearestFilter; resource.magFilter = THREE.NearestFilter; resource.generateMipmaps = false; resource.wrapS = THREE.RepeatWrapping; resource.wrapT = THREE.RepeatWrapping; } ],
             [ 'soundTexture',               `intro/sound.${compressedTextureExtension}${cb}`,               compressedTextureFormat, (resource) => { resource.minFilter = THREE.LinearFilter; resource.magFilter = THREE.LinearFilter; resource.generateMipmaps = false; resource.repeat.x = 0.5; } ],
             [ 'paletteTexture',             `palette.${compressedTextureExtension}${cb}`,                   compressedTextureFormat, (resource) => { resource.minFilter = THREE.NearestFilter; resource.magFilter = THREE.NearestFilter; resource.generateMipmaps = false; resource.colorSpace = THREE.SRGBColorSpace; } ],
-
+            [ 'skyboxTexture',              'sky_23_2k.png',                                                   'texture', (resource) => { resource.colorSpace = THREE.SRGBColorSpace; resource.wrapS = THREE.RepeatWrapping; resource.wrapT = THREE.ClampToEdgeWrapping; resource.minFilter = THREE.LinearFilter; resource.magFilter = THREE.LinearFilter; } ],
         ])
         this.options = new Options()
         this.respawns = new Respawns(import.meta.env.VITE_PLAYER_SPAWN || 'landing')

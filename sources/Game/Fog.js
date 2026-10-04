@@ -1,4 +1,4 @@
-import { color, float, mix, positionWorld, rangeFogFactor, screenCoordinate, uniform, vec2, vec3, viewportUV } from 'three/tsl'
+import { color, equirectUV, float, Fn, mix, positionWorld, rangeFogFactor, screenCoordinate, smoothstep, texture, time, uniform, vec2, vec3, viewportUV } from 'three/tsl'
 import { Game } from './Game.js'
 
 export class Fog
@@ -15,7 +15,25 @@ export class Fog
 
         const colorMix = vec2(viewportUV.xy).sub(this.radialCenter).length().smoothstep(this.radialStart, this.radialEnd)
         this.color = mix(this.colorA, this.colorB, colorMix)
-        this.game.scene.backgroundNode = this.color
+
+        // Equirectangular anime sky background with cloud drift
+        const backgroundNode = Fn(() =>
+        {
+            if(this.game.resources?.skyboxTexture)
+            {
+                const uvCoord = equirectUV()
+                // Slow subtle cloud drift across the sky
+                const scrolledU = uvCoord.x.add(time.mul(0.0012)).fract()
+                const skySample = texture(this.game.resources.skyboxTexture, vec2(scrolledU, uvCoord.y)).rgb
+
+                // Fade bottom half into atmospheric ocean fog (uvCoord.y = 0.5 is horizon)
+                const horizonFade = uvCoord.y.smoothstep(0.40, 0.52)
+                return mix(this.color, skySample, horizonFade)
+            }
+            return this.color
+        })()
+
+        this.game.scene.backgroundNode = backgroundNode
 
         this.near = uniform(450)
         this.far = uniform(900)
