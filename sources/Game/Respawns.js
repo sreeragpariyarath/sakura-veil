@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { Game } from './Game.js'
+import { WorldLayout } from './World/WorldLayout.js'
 
 export class Respawns
 {
@@ -15,13 +16,19 @@ export class Respawns
     {
         this.items = new Map()
 
-        const defaultItem = {
-            name: 'landing',
-            position: new THREE.Vector3(0, 4, 0),
-            rotation: 0
+        // Populate respawns from the world layout arenas
+        for(const arena of WorldLayout.arenas)
+        {
+            const item = {
+                name: arena.id,
+                label: arena.name,
+                position: new THREE.Vector3(arena.x, 4, arena.z),
+                rotation: arena.facing ?? 0
+            }
+            this.items.set(arena.id, item)
         }
-        this.items.set('landing', defaultItem)
 
+        // Retain any supplementary references if provided by models
         if(this.game.resources && this.game.resources.respawnsReferencesModel?.scene)
         {
             for(const child of this.game.resources.respawnsReferencesModel.scene.children)
@@ -29,20 +36,21 @@ export class Respawns
                 child.rotation.reorder('YXZ')
 
                 let name = child.name.replace(/^respawn(.+)$/i, '$1')
-
                 name = name.charAt(0).toLowerCase() + name.slice(1)
 
-                const item = {
-                    name: name,
-                    position: new THREE.Vector3(
-                        child.position.x,
-                        4,
-                        child.position.z
-                    ),
-                    rotation: child.rotation.y
+                if(!this.items.has(name))
+                {
+                    const item = {
+                        name: name,
+                        position: new THREE.Vector3(
+                            child.position.x,
+                            4,
+                            child.position.z
+                        ),
+                        rotation: child.rotation.y
+                    }
+                    this.items.set(name, item)
                 }
-
-                this.items.set(name, item)
             }
         }
     }

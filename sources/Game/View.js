@@ -341,7 +341,7 @@ export class View
         this.spherical.phiLimits = { min: Math.PI * 0.12, max: Math.PI * 0.6 }
         this.spherical.optimalAreaPhi = Math.PI * 0.42 // Pitch the fog/optimal area distances are tuned for
         this.spherical.groundClearance = 0.35
-        this.spherical.theta = Math.PI * 0.25
+        this.spherical.theta = 0
 
         this.spherical.radius = {}
         this.spherical.radius.edges = { min: 6, max: 10 }
@@ -402,7 +402,7 @@ export class View
 
     setCameras()
     {
-        this.camera = new THREE.PerspectiveCamera(25, this.game.viewport.ratio, 0.1, 200)
+        this.camera = new THREE.PerspectiveCamera(25, this.game.viewport.ratio, 0.1, 3500)
         this.camera.position.setFromSphericalCoords(this.spherical.radius.current, this.spherical.phi, this.spherical.theta)
 
         this.defaultCamera = this.camera.clone()

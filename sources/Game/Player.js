@@ -41,7 +41,7 @@ export class Player
         this.game.physicalVehicle.chassis.physical.initialState.position.z = respawn.position.z
         this.game.physicalVehicle.moveTo(respawn.position, respawn.rotation)
         if(this.game.view && this.game.view.spherical)
-            this.game.view.spherical.theta = respawn.rotation + Math.PI
+            this.game.view.spherical.theta = 0
 
         this.game.ticker.events.on('tick', () =>
         {

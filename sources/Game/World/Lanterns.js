@@ -5,6 +5,7 @@ import { Game } from '../Game.js'
 import { Events } from '../Events.js'
 import { References } from '../References.js'
 import { InteractivePoints } from '../InteractivePoints.js'
+import { WorldLayout } from './WorldLayout.js'
 
 // The five festival lanterns of the Sakura Festival story (docs/story/STORY.md).
 // Each one opens one portfolio card; lighting all five starts the celebration.
@@ -12,14 +13,22 @@ export class Lanterns
 {
     static STORAGE_KEY = 'sakura-veil-lanterns'
 
-    // Placeholder positions, one per future zone (docs/roadmap/m1-festival-garden), 40–80 m from the spawn on dry ground
-    static ITEMS = [
-        { id: 'about',      label: 'About me',   position: new THREE.Vector3(- 40, 0, 10),  rotation: 0.4 }, // Sakura Grove
-        { id: 'experience', label: 'Experience', position: new THREE.Vector3(45, 0, - 45),  rotation: 2.1 }, // River Crossing
-        { id: 'skills',     label: 'Skills',     position: new THREE.Vector3(- 65, 0, - 50), rotation: 4.0 }, // Torii Path
-        { id: 'projects',   label: 'Projects',   position: new THREE.Vector3(50, 0, 40),    rotation: 1.2 }, // Koi Pond
-        { id: 'contact',    label: 'Contact',    position: new THREE.Vector3(- 15, 0, 65),  rotation: 3.1 }, // Pagoda Hill
-    ]
+    // Positions placed in the 5 guardian arenas from WorldLayout (400m realm)
+    static get ITEMS()
+    {
+        return WorldLayout.arenas
+            .filter(arena => arena.lantern)
+            .map(arena => ({
+                id: arena.lantern,
+                label: arena.name,
+                position: new THREE.Vector3(
+                    arena.x + (arena.lanternOffset?.x ?? 0),
+                    0,
+                    arena.z + (arena.lanternOffset?.z ?? 0)
+                ),
+                rotation: arena.facing ?? 0
+            }))
+    }
 
     constructor()
     {

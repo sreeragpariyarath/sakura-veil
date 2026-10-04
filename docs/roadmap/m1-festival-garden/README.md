@@ -21,8 +21,8 @@ Rules for lantern spots:
 
 | Sub-phase | Plan | Status |
 |---|---|---|
-| 1.1 Zone layout and blockout | [plan](1.1-blockout/plan.md) | Not started |
-| 1.2 Sakura trees and foliage | [plan](1.2-trees/plan.md) | Not started |
+| 1.1 Island coastline, ocean & world structure | [plan](1.1-island-coastline-and-world-structure.md) | Ready to build |
+| 1.2 Sakura trees and foliage | [plan](1.2-trees/plan.md) | In progress |
 | 1.3 Landmarks: torii, bridge, pagoda, rocks, fences | [plan](1.3-landmarks/plan.md) | Not started |
 | 1.4 Water, grass, flowers, petals | [plan](1.4-nature/plan.md) | Not started |
 | 1.5 Lighting, sky, fog, post-processing | [plan](1.5-lighting/plan.md) | Not started |

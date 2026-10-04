@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
+import { WorldLayout } from './WorldLayout.js'
 
 export class SakuraTrees
 {
@@ -73,37 +74,125 @@ export class SakuraTrees
 
     setTrees()
     {
-        const placements = [
-            // Prominent Sakura tree near the pond (left)
-            { position: new THREE.Vector3(-15.5, 0, -16), scale: 1.4, rotation: 0.8 },
-            { position: new THREE.Vector3(-21.0, 0, -26), scale: 1.25, rotation: 2.3 },
+        const placements = []
 
-            // Left side along playable paths & bushes
-            { position: new THREE.Vector3(-24.0, 0, -5),   scale: 1.1, rotation: 1.2 },
-            { position: new THREE.Vector3(-27.0, 0, 18),   scale: 1.15, rotation: 4.1 },
-            { position: new THREE.Vector3(-31.0, 0, 38),   scale: 1.2, rotation: 0.5 },
-            { position: new THREE.Vector3(-23.0, 0, -42),  scale: 1.05, rotation: 3.2 },
-            { position: new THREE.Vector3(-36.0, 0, -62),  scale: 1.3, rotation: 2.7 },
-            { position: new THREE.Vector3(-44.0, 0, -82),  scale: 1.2, rotation: 1.8 },
+        // Helper: check if a candidate position is inside any combat clearing
+        const isInsideArena = (x, z) =>
+        {
+            for(const arena of WorldLayout.arenas)
+            {
+                const dist = Math.hypot(x - arena.x, z - arena.z)
+                if(dist < arena.radius + 3)
+                    return true
+            }
+            return false
+        }
 
-            // Right side along paths & open space
-            { position: new THREE.Vector3(19.0, 0, -14),   scale: 1.1, rotation: 3.5 },
-            { position: new THREE.Vector3(26.0, 0, 8),     scale: 1.0, rotation: 0.9 },
-            { position: new THREE.Vector3(32.0, 0, -32),   scale: 1.25, rotation: 5.0 },
-            { position: new THREE.Vector3(36.0, 0, 28),    scale: 1.15, rotation: 2.1 },
-            { position: new THREE.Vector3(43.0, 0, -58),   scale: 1.3, rotation: 1.4 },
-            { position: new THREE.Vector3(52.0, 0, -84),   scale: 1.2, rotation: 4.8 },
+        // Helper: check if candidate position is inside or right on the river/ponds
+        const isNearWater = (x, z) =>
+        {
+            for(const pond of WorldLayout.ponds)
+            {
+                if(Math.hypot(x - pond.x, z - pond.z) < pond.radius + 2)
+                    return true
+            }
+            const pts = WorldLayout.river.points
+            for(let i = 0; i < pts.length - 1; i++)
+            {
+                const p1 = pts[i]
+                const p2 = pts[i + 1]
+                const l2 = (p2.x - p1.x)**2 + (p2.z - p1.z)**2
+                if(l2 === 0) continue
+                const t = Math.max(0, Math.min(1, ((x - p1.x)*(p2.x - p1.x) + (z - p1.z)*(p2.z - p1.z)) / l2))
+                const projX = p1.x + t * (p2.x - p1.x)
+                const projZ = p1.z + t * (p2.z - p1.z)
+                if(Math.hypot(x - projX, z - projZ) < WorldLayout.river.width * 0.75 + 2)
+                    return true
+            }
+            return false
+        }
 
-            // Middle distance & horizon background
-            { position: new THREE.Vector3(-14.0, 0, -72),  scale: 1.3, rotation: 2.0 },
-            { position: new THREE.Vector3(6.0, 0, -92),    scale: 1.35, rotation: 0.4 },
-            { position: new THREE.Vector3(22.0, 0, -82),   scale: 1.25, rotation: 3.7 },
-            { position: new THREE.Vector3(-48.0, 0, -108), scale: 1.4, rotation: 1.1 },
-            { position: new THREE.Vector3(-22.0, 0, -122), scale: 1.35, rotation: 5.2 },
-            { position: new THREE.Vector3(12.0, 0, -128),  scale: 1.4, rotation: 2.9 },
-            { position: new THREE.Vector3(42.0, 0, -112),  scale: 1.3, rotation: 0.3 },
-            { position: new THREE.Vector3(62.0, 0, -88),   scale: 1.2, rotation: 4.0 },
-        ]
+        const tryAdd = (x, z, scale = 1.2, rotation = Math.random() * Math.PI * 2) =>
+        {
+            // Must be strictly on dry island landmass (at least 20m inside the water's edge)
+            const angle = Math.atan2(z, x)
+            const islandRadius = WorldLayout.getIslandRadius(angle)
+            if(Math.hypot(x, z) > islandRadius - 20)
+                return
+            // Keep the south sandy beach cove open (Z > 1050, |X| < 450)
+            if(z > 1050 && Math.abs(x) < 450)
+                return
+            if(isInsideArena(x, z) || isNearWater(x, z))
+                return
+            // Don't pack trees too tightly
+            for(const existing of placements)
+            {
+                if(Math.hypot(existing.position.x - x, existing.position.z - z) < 14)
+                    return
+            }
+            placements.push({ position: new THREE.Vector3(x, 0, z), scale, rotation })
+        }
+
+        // 1. Frame the perimeters of all arenas (trees ring outside the combat clearings)
+        for(const arena of WorldLayout.arenas)
+        {
+            const ringCount = arena.id === 'grove' ? 18 : 9
+            for(let i = 0; i < ringCount; i++)
+            {
+                const angle = (i / ringCount) * Math.PI * 2 + 0.2
+                const dist = arena.radius + 8 + (i % 3) * 6
+                tryAdd(arena.x + Math.cos(angle) * dist, arena.z + Math.sin(angle) * dist, 1.2 + (i % 4) * 0.1)
+            }
+        }
+
+        // 2. Line each path on both sides (forming grand cherry blossom avenues)
+        for(const [ idA, idB ] of WorldLayout.paths)
+        {
+            const a = WorldLayout.getArena(idA)
+            const b = WorldLayout.getArena(idB)
+            if(!a || !b) continue
+
+            const dx = b.x - a.x
+            const dz = b.z - a.z
+            const dist = Math.hypot(dx, dz)
+            const nx = - dz / dist // Normal perpendicular to path
+            const nz = dx / dist
+
+            const steps = Math.floor(dist / 60)
+            for(let i = 1; i < steps; i++)
+            {
+                const t = i / steps
+                const cx = a.x + dx * t
+                const cz = a.z + dz * t
+
+                // Left flank (placed outside the 32m wide path)
+                tryAdd(cx + nx * (36 + (i % 2) * 14), cz + nz * (36 + (i % 2) * 14), 1.3 + (i % 3) * 0.15)
+                // Right flank
+                tryAdd(cx - nx * (36 + ((i + 1) % 2) * 14), cz - nz * (36 + ((i + 1) % 2) * 14), 1.3 + (i % 2) * 0.2)
+            }
+        }
+
+        // 3. Dense clusters around the Sakura Grove (X: 0, Z: 90)
+        for(let ox = -250; ox <= 250; ox += 75)
+        {
+            for(let oz = -250; oz <= 250; oz += 75)
+            {
+                const jx = (Math.sin(ox * 3.7 + oz) * 0.5) * 20
+                const jz = (Math.cos(ox + oz * 4.1) * 0.5) * 20
+                tryAdd(0 + ox + jx, 90 + oz + jz, 1.4)
+            }
+        }
+
+        // 4. Distant perimeter treeline along the island coast/hills to frame the skyline
+        const perimeterSteps = 72
+        for(let i = 0; i < perimeterSteps; i++)
+        {
+            const angle = (i / perimeterSteps) * Math.PI * 2
+            // Keep the south sandy beach open
+            if(angle > 0.6 && angle < 2.5) continue
+            const r = WorldLayout.getIslandRadius(angle) - 60 - (i % 3) * 25
+            tryAdd(Math.cos(angle) * r, Math.sin(angle) * r, 1.5)
+        }
 
         for(const treeConfig of placements)
         {

@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
 import { color, float, Fn, materialNormal, min, mix, mul, normalWorld, positionLocal, positionWorld, texture, uniform, uv, vec3, vec4 } from 'three/tsl'
 import { MeshDefaultMaterial } from '../Materials/MeshDefaultMaterial.js'
+import { WorldLayout } from './WorldLayout.js'
 
 export class Floor
 {
@@ -17,12 +18,10 @@ export class Floor
                 expanded: false,
             })
         }
-        this.geometry = this.game.resources.terrainModel.scene.children[0].geometry
-        this.subdivision = this.game.terrain.subdivision
 
         this.setVisual()
         this.setPhysical()
-        this.setBedRock()
+        this.setBoundary()
 
         this.game.ticker.events.on('tick', () =>
         {
@@ -123,24 +122,9 @@ export class Floor
 
     setPhysical()
     {
-        // Extract heights from geometry
-        const positionAttribute = this.geometry.attributes.position
-        const totalCount = positionAttribute.count
-        const rowsCount = Math.sqrt(totalCount)
-        const heights = new Float32Array(totalCount)
-        const halfExtent = this.game.terrain.size / 2
-
-        for(let i = 0; i < totalCount; i++)
-        {
-            const x = positionAttribute.array[i * 3 + 0]
-            const y = positionAttribute.array[i * 3 + 1]
-            const z = positionAttribute.array[i * 3 + 2]
-            const indexX = Math.round(((x / (halfExtent * 2)) + 0.5) * (rowsCount - 1))
-            const indexZ = Math.round(((z / (halfExtent * 2)) + 0.5) * (rowsCount - 1))
-            const index = indexZ + indexX * rowsCount
-
-            heights[index] = y
-        }
+        // One flat slab under the whole realm, top face at y = 0. Rei flies, so the shallow
+        // visual dips of the river and pond (see the displacement above) don't need matching colliders.
+        const halfExtent = WorldLayout.size * 0.5 + 50
 
         const object = this.game.objects.add(
             null,
@@ -149,66 +133,40 @@ export class Floor
                 friction: 0.2,
                 restitution: 0.15,
                 colliders: [
-                    { shape: 'heightfield', parameters: [ rowsCount - 1, rowsCount - 1, heights, { x: this.game.terrain.size, y: 1, z: this.game.terrain.size } ], category: 'floor' }
+                    { shape: 'cuboid', parameters: [ halfExtent, 1, halfExtent ], position: { x: 0, y: - 1, z: 0 }, category: 'floor' }
                 ]
             }
         )
         this.physical = object.physical
     }
 
-    setBedRock()
+    setBoundary()
     {
-        this.bedRock = {}
-        this.bedRock.halfHeight = 0.5
-        this.bedRock.halfWidth = 6
-        this.bedRock.enabled = false
+        // Invisible walls at WorldLayout.boundary, taller than PhysicsFlight.maxAltitude
+        const boundary = WorldLayout.boundary
+        const halfHeight = 40
+        const halfThickness = 1
+        const halfLength = boundary + halfThickness
 
-
-        this.bedRock.physical = this.game.physics.getPhysical({
-            type: 'kinematicPositionBased',
-            position: new THREE.Vector3(0, this.game.water.depthElevation - this.bedRock.halfHeight, 0),
-            frictionRule: 'min',
-            friction: 0.5,
-            enabled: true,
-            colliders:
-            [
-                { shape: 'cuboid', parameters: [ this.bedRock.halfWidth, this.bedRock.halfHeight, this.bedRock.halfWidth ] },
-            ]
-        })
+        this.boundary = this.game.objects.add(
+            null,
+            {
+                type: 'fixed',
+                friction: 0,
+                restitution: 0,
+                colliders: [
+                    { shape: 'cuboid', parameters: [ halfThickness, halfHeight, halfLength ], position: { x:   boundary + halfThickness, y: halfHeight, z: 0 }, category: 'floor' },
+                    { shape: 'cuboid', parameters: [ halfThickness, halfHeight, halfLength ], position: { x: - boundary - halfThickness, y: halfHeight, z: 0 }, category: 'floor' },
+                    { shape: 'cuboid', parameters: [ halfLength, halfHeight, halfThickness ], position: { x: 0, y: halfHeight, z:   boundary + halfThickness }, category: 'floor' },
+                    { shape: 'cuboid', parameters: [ halfLength, halfHeight, halfThickness ], position: { x: 0, y: halfHeight, z: - boundary - halfThickness }, category: 'floor' },
+                ]
+            }
+        )
     }
 
     update()
     {
         this.mesh.position.x = Math.round(this.game.view.optimalArea.position.x / this.cellSize) * this.cellSize
         this.mesh.position.z = Math.round(this.game.view.optimalArea.position.z / this.cellSize) * this.cellSize
-
-        // Bedrock
-        if(
-            Math.abs(this.game.player.position.x) > this.game.terrain.size / 2 - this.bedRock.halfWidth ||
-            Math.abs(this.game.player.position.z) > this.game.terrain.size / 2 - this.bedRock.halfWidth
-        )
-        {
-            if(!this.bedRock.enabled)
-            {
-                this.bedRock.enabled = true
-                this.bedRock.physical.body.setEnabled(true)
-            }
-            const x = Math.round(this.game.player.position.x)
-            const z = Math.round(this.game.player.position.z)
-            this.bedRock.physical.body.setNextKinematicTranslation({
-                x,
-                y: this.game.water.depthElevation - this.bedRock.halfHeight,
-                z
-            })
-            this.bedRock.physical.body.setLinvel({ x: 0, y: 0, z: 0 })
-        }
-        else
-        {
-            if(this.bedRock.enabled)
-            {
-                this.bedRock.enabled = false
-                this.bedRock.physical.body.setEnabled(false)
-            }
-        }
     }
 }
