@@ -381,16 +381,13 @@ A strange sound interrupts her.
 
 Rei begins exploring.
 
-She encounters a small hostile creature.
+She encounters an aggressive, shadowy creature:
 
-This creature is **Kappa-like in narrative role**.
+# The Shadow Werewolf (Lycan Spirit)
 
-It is not presented as a historically accurate Japanese kappa.
+It is a ferocious, cursed beast corrupted by the world's failing balance.
 
-It is an original hostile spirit encounter built around the available
-model.
-
-The creature attacks Rei.
+The werewolf attacks Rei with rapid claw swipes and brutal combos.
 
 This becomes the player's introduction to:
 
@@ -399,9 +396,9 @@ This becomes the player's introduction to:
 -   interaction
 -   basic combat
 -   health/damage
--   environmental awareness
+-   timing against multi-hit claw attacks
 
-Rei is initially unable to handle the creature.
+Rei is initially unable to handle the creature's aggression.
 
 ------------------------------------------------------------------------
 
@@ -565,60 +562,56 @@ Each guardian represents a conflict connected to its relic.
 The progression is:
 
 ``` text
-Opening Creature
+Opening / Tutorial Encounter: Shadow Werewolf
       ↓
-Guardian 1
+Level 1 Guardian: Agile Spirit Guardian (Veil I)
       ↓
-Guardian 2
+Level 2 Guardian: Mountain Oni (Veil II)
       ↓
-Guardian 3
+Level 3 Guardian: Buried Beast (Veil III)
       ↓
-Guardian 4
+Level 4 Guardian: [TBA - 4th Most Powerful Guardian] (Veil IV)
       ↓
-Monkey King
+Level 5 Guardian / Final Boss: Monkey King (Veil V)
 ```
 
-The five relics are recovered during the journey.
+The five relics are recovered during the journey from the five level guardians.
 
 The Monkey King is the final guardian and the character who reveals the
 larger truth.
 
 ------------------------------------------------------------------------
 
-# 16. Guardian 1 --- The Kappa
+# 16. Tutorial Encounter --- The Shadow Werewolf
 
 ## Role
 
-**Type:** Small hostile spirit\
-**Position:** Early-game encounter\
+**Type:** Hostile Lycan Spirit\
+**Position:** Early-game / awakening encounter\
 **Purpose:** Tutorial enemy
 
-The Kappa-like creature is the first hostile entity Rei encounters.
+The Shadow Werewolf is the first hostile entity Rei encounters upon awakening.
 
-It is intentionally smaller and less powerful than the later guardians.
+Equipped with rapid attack animations (left claw, combo strikes, right claw, back attack),
+it puts immediate pressure on the player.
 
-It teaches the player the basic interaction model.
+It teaches the player the basic combat and survival loop:
 
-------------------------------------------------------------------------
-
-## Gameplay Purpose
-
-The first encounter introduces:
-
--   movement
+-   movement and spacing
 -   targeting
--   dodging
--   basic attack/interaction
--   damage
--   enemy awareness
+-   dodge timing against multi-hit claw combos
+-   basic spirit attack/interaction
+-   health and damage mechanics
 
-The encounter should be short.
+The encounter is intense but short: just before Rei is overwhelmed,
+Kohaku intervenes to drive the beast away.
 
-It is not a major boss.
+*(Note: Currently using the Skyrim Werewolf Rig as a development/prototype asset;
+must be replaced with an original/CC0/CC-BY licensed werewolf model before public portfolio release).*
 
 ------------------------------------------------------------------------
 
-# 17. Guardian 2 --- The Agile Spirit Guardian
+# 17. Guardian 1 --- The Agile Spirit Guardian
 
 ## Model Direction
 
@@ -637,7 +630,7 @@ The Sakura Veil character is an original narrative role.
 **Type:** Agile spiritual guardian\
 **Combat Style:** Fast melee attacks\
 **Region:** Forest/shrine region\
-**Theme:** Identity
+**Theme:** Identity (Veil I)
 
 This guardian is significantly faster than the first major enemy.
 
@@ -663,7 +656,7 @@ This is the first major philosophical conflict in Rei's journey.
 
 ------------------------------------------------------------------------
 
-# 18. Guardian 3 --- The Mountain Oni
+# 18. Guardian 2 --- The Mountain Oni
 
 ## Physical Representation
 
@@ -679,7 +672,7 @@ The narrative identity is an original **Mountain Oni**.
 
 **Type:** Heavy guardian\
 **Region:** Mountain\
-**Theme:** Emotion / strength\
+**Theme:** Emotion / strength (Veil II)\
 **Combat Style:** Slow, powerful attacks
 
 The Mountain Oni should contrast heavily with the agile guardian.
@@ -711,7 +704,7 @@ Positioning becomes important.
 
 ------------------------------------------------------------------------
 
-# 19. Guardian 4 --- The Buried Beast
+# 19. Guardian 3 --- The Buried Beast
 
 ## Physical Representation
 
@@ -740,7 +733,7 @@ Possible environmental elements:
 ## Role
 
 **Type:** Large beast guardian\
-**Theme:** Desire / buried memories\
+**Theme:** Desire / buried memories (Veil III)\
 **Combat Style:** Aggressive creature combat
 
 The buried beast represents things that people attempt to hide but
@@ -750,9 +743,25 @@ This parallels Kaori's forgotten memories.
 
 ------------------------------------------------------------------------
 
+# 19.1 Guardian 4 --- The Penultimate Guardian [TBA]
+
+## Role
+
+**Position:** Level 4 Guardian / 4th Most Powerful\
+**Theme:** Life / Ancient Spiritual Power (Veil IV)\
+**Status:** Reserved slot (to be detailed as game progress develops)
+
+Guardian 4 represents the penultimate trial before reaching the realm's
+summit. It is the 4th most powerful entity in Sauraka Veil, guarding the
+deepest threshold leading directly to the Monkey King's domain.
+
+Its combat profile will demand mastery over both agility and heavy attack evasion.
+
+------------------------------------------------------------------------
+
 # 20. Guardian 5 --- The Monkey King
 
-# Final Guardian
+# Final Guardian & Boss
 
 The **Monkey King** is the final major guardian.
 
@@ -1013,14 +1022,17 @@ another villain.
                v
         Five Veils / Relics
                |
-      -----------------------
-      |    |    |    |     |
-      v    v    v    v     v
-    Kappa Agile Oni Beast  Monkey King
-                           |
-                           |
-                       Final Truth
+      ---------------------------------------
+      |       |       |       |             |
+      v       v       v       v             v
+    Agile    Oni    Beast  Guardian 4   Monkey King
+   (Lvl 1) (Lvl 2) (Lvl 3)  (Lvl 4)       (Lvl 5)
+                                             |
+                                             |
+                                        Final Truth
 ```
+
+*(Note: Prior to confronting the 5 Guardians, Rei faces the Shadow Werewolf in the opening tutorial).*
 
 ------------------------------------------------------------------------
 
@@ -1039,22 +1051,25 @@ another villain.
   **Kohaku**              Nine-Tailed Fox         Guide, companion,
                                                   mentor, mystery holder
 
-  **Kappa-like Creature** Early enemy             Introduces danger and
-                                                  basic combat
+  **Shadow Werewolf**     Tutorial Enemy          Introduces danger and
+  **(Lycan Spirit)**                              fast combat combos
 
-  **Agile Spirit          Guardian                Challenges Rei's
+  **Agile Spirit          Guardian (Level 1)      Challenges Rei's
   Guardian**                                      understanding of
-                                                  identity
+                                                  identity (Veil I)
 
-  **Mountain Oni**        Guardian                Heavy combat encounter
-                                                  and emotional conflict
+  **Mountain Oni**        Guardian (Level 2)      Heavy combat encounter
+                                                  and emotional conflict (Veil II)
 
-  **Buried Beast**        Guardian                Represents suppressed
-                                                  memories/desires
+  **Buried Beast**        Guardian (Level 3)      Represents suppressed
+                                                  memories/desires (Veil III)
 
-  **Monkey King**         Final Guardian          Final battle and
-                                                  revelation of the Five
-                                                  Veils
+  **Guardian 4 [TBA]**    Guardian (Level 4)      The 4th most powerful
+                                                  guardian trial (Veil IV)
+
+  **Monkey King**         Guardian (Level 5)      Final battle and
+                          / Final Boss            revelation of the Five
+                                                  Veils / Locks (Veil V)
   -----------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -1118,19 +1133,22 @@ underlying intellectual-property issue.
 
 # 35. Current Asset-to-Character Mapping
 
-## Kappa-like Creature
+## Shadow Werewolf (Lycan Spirit)
 
-**Narrative Identity:** Kappa-like hostile spirit\
-**Use:** Opening enemy/tutorial encounter\
-**Importance:** Low-to-medium\
-**Combat:** Basic melee/attack pattern
+**Physical Asset Direction:** Rigged Werewolf (Prototype: Skyrim Werewolf Rig)\
+**Narrative Identity:** Cursed Lycan Spirit\
+**Use:** Opening enemy / awakening combat tutorial\
+**Importance:** High mechanical value (rich animation set: left claw, combos, right claw, back attack)\
+**Combat:** Rapid, aggressive melee claw combos
+
+**Asset License Warning:** The current "Skyrim Werewolf Rig" is an asset extracted from Bethesda's *The Elder Scrolls V: Skyrim*. It serves well for internal development and mechanic prototyping, but MUST be substituted with an original or properly licensed CC0/CC-BY werewolf asset prior to public deployment to avoid copyright infringement.
 
 ------------------------------------------------------------------------
 
 ## Agile Female Guardian
 
-**Narrative Identity:** Original spirit guardian\
-**Use:** Early/mid-game boss\
+**Narrative Identity:** Original spirit guardian (Guardian 1)\
+**Use:** Early/mid-game boss (Veil I)\
 **Combat:** Fast melee
 
 **Asset Requirement:** Only use a model after confirming that its
@@ -1141,8 +1159,8 @@ license permits the intended public use.
 ## Mountain Oni
 
 **Physical Asset Direction:** Minotaur\
-**Narrative Identity:** Original Mountain Oni\
-**Use:** Heavy guardian\
+**Narrative Identity:** Original Mountain Oni (Guardian 2)\
+**Use:** Heavy guardian (Veil II)\
 **Combat:** Slow, high-impact attacks
 
 ------------------------------------------------------------------------
@@ -1150,16 +1168,26 @@ license permits the intended public use.
 ## Buried Beast
 
 **Physical Asset Direction:** Underground Monster\
-**Narrative Identity:** Original ancient buried beast\
-**Use:** Major guardian\
+**Narrative Identity:** Original ancient buried beast (Guardian 3)\
+**Use:** Major guardian (Veil III)\
 **Combat:** Large creature encounter
+
+------------------------------------------------------------------------
+
+## Guardian 4 [TBA]
+
+**Physical Asset Direction:** To be determined (user asset)\
+**Narrative Identity:** 4th Most Powerful Guardian of Sauraka Veil (Guardian 4)\
+**Use:** Penultimate guardian trial (Veil IV)\
+**Combat:** High difficulty, hybrid agile and area-of-effect attacks\
+**Story Importance:** High
 
 ------------------------------------------------------------------------
 
 ## Monkey King
 
-**Narrative Identity:** Monkey King / final guardian\
-**Use:** Final boss\
+**Narrative Identity:** Monkey King / final guardian (Guardian 5)\
+**Use:** Final boss (Veil V)\
 **Combat:** Fast, intelligent, multi-phase encounter\
 **Story Importance:** Highest among the guardians
 
@@ -1172,34 +1200,39 @@ The Monkey King is the final boss of the current story.
 The progression should communicate increasing danger.
 
 ``` text
-Level 0
-Kappa-like Creature
+Level 0 (Tutorial)
+Shadow Werewolf
      ↓
-Level 1
-Agile Spirit Guardian
+Level 1 Guardian
+Agile Spirit Guardian (Veil I)
      ↓
-Level 2
-Mountain Oni
+Level 2 Guardian
+Mountain Oni (Veil II)
      ↓
-Level 3
-Buried Beast
+Level 3 Guardian
+Buried Beast (Veil III)
      ↓
-Level 4
-Monkey King
+Level 4 Guardian
+[TBA - 4th Most Powerful] (Veil IV)
+     ↓
+Level 5 Guardian / Boss
+Monkey King (Veil V)
 ```
 
 The progression should also increase mechanically:
 
 ``` text
-Simple attack
+Aggressive claw combos (tutorial on dodging & spacing)
      ↓
-Fast attacks
+Fast, precision melee attacks
      ↓
-Heavy attacks
+Heavy, high-impact ground slams
      ↓
-Large-area attacks
+Large-area subterranean attacks
      ↓
-Multi-phase intelligent boss
+High-tier hybrid combat trial
+     ↓
+Multi-phase intelligent boss with environmental mastery
 ```
 
 ------------------------------------------------------------------------
@@ -1351,56 +1384,56 @@ not defeated a boss.
 ## Chapter 0 --- Awakening
 
 -   Kaori memory fragments
--   Rei awakens
--   Sauraka Veil introduced
--   Kappa-like creature encounter
--   Kohaku appears
+-   Rei awakens in Sauraka Veil
+-   Shadow Werewolf ambush & claw combat tutorial
+-   Kohaku steps in to save Rei
+-   Sauraka Veil's crisis introduced
 
 ------------------------------------------------------------------------
 
 ## Chapter 1 --- The First Veil
 
--   Rei explores the first region
--   Learns about the Five Veils
--   First major guardian
--   Memory fragments begin
+-   Rei explores the forest & shrine region
+-   Learns about the Five Veils (The Sacred Relics)
+-   Guardian 1: Agile Spirit Guardian encounter (Veil I: Memory)
+-   First clear memory fragments emerge
 
 ------------------------------------------------------------------------
 
 ## Chapter 2 --- The Weight of the Past
 
--   Rei reaches the mountain region
--   Mountain Oni encounter
--   Stronger Kaori memories
--   Rei questions her identity
+-   Rei reaches the mountain peaks
+-   Guardian 2: Mountain Oni heavy encounter (Veil II: Identity)
+-   Stronger Kaori memories surface
+-   Rei begins questioning her true identity
 
 ------------------------------------------------------------------------
 
 ## Chapter 3 --- Beneath the Veil
 
--   Underground region
--   Buried Beast
--   Deeper memory fragments
+-   Descent into ancient underground ruins
+-   Guardian 3: Buried Beast battle (Veil III: Emotion)
+-   Deep, suppressed memory fragments unlocked
 -   Kohaku becomes increasingly concerned
 
 ------------------------------------------------------------------------
 
-## Chapter 4 --- The Final Gate
+## Chapter 4 --- The Penultimate Trial
 
--   Rei reaches the Monkey King's domain
--   Monkey King reveals that he knows about Kaori
--   Final guardian battle
--   Five Veils activate
+-   Ascent toward the sacred threshold
+-   Guardian 4: Penultimate Guardian battle (Veil IV: Desire)
+-   The 4th most powerful entity tests Rei's full mastery of flight and combat
+-   The path to the sacred summit opens
 
 ------------------------------------------------------------------------
 
-## Chapter 5 --- The Truth
+## Chapter 5 --- The Final Gate & The Truth
 
--   The relics are revealed as locks
--   Rei understands the consequence
--   The world reacts
--   Final story sequence
--   Rei accepts her identity
+-   Rei reaches the Monkey King's domain at the world's summit
+-   Guardian 5: The Monkey King engages Rei (Veil V: Life)
+-   The Monkey King reveals the truth: the Five Veils were LOCKS, not keys
+-   Rei confronts the unsealed spiritual barrier
+-   Rei makes peace with Kaori's death and embraces her identity as Rei
 
 ------------------------------------------------------------------------
 
@@ -1554,23 +1587,27 @@ Awakens in Sauraka Veil
         ↓
         Rei
         ↓
-Kappa-like creature attacks
+Shadow Werewolf attacks (Tutorial Encounter)
         ↓
 Kohaku saves Rei
         ↓
 Five Veils are missing
         ↓
-Rei begins recovering them
+Rei begins recovering them from the 5 Guardians
         ↓
-Guardians protect the Veils
+Level 1: Agile Spirit Guardian (Veil I)
         ↓
-Rei discovers memories of Kaori
+Level 2: Mountain Oni (Veil II)
         ↓
-Identity becomes uncertain
+Level 3: Buried Beast (Veil III)
         ↓
-Rei reaches Monkey King
+Level 4: Penultimate Guardian [TBA] (Veil IV)
         ↓
-Final Guardian Battle
+Rei discovers memories of Kaori & identity fractures
+        ↓
+Level 5: Rei reaches the Monkey King (Veil V)
+        ↓
+Final Boss Battle
         ↓
 Monkey King reveals the truth
         ↓
@@ -1580,7 +1617,7 @@ Rei accidentally removed the seals
         ↓
 Truth about Kaori/Rei is revealed
         ↓
-Rei accepts that she is not merely Kaori
+Rei accepts that she is not merely Kaori, but Rei
         ↓
 Ending
 ```
@@ -1615,17 +1652,17 @@ existence than initially revealed.
 
 ------------------------------------------------------------------------
 
-## Kappa-like Creature
+## Shadow Werewolf (Lycan Spirit)
 
-**Opening enemy.**
+**Opening enemy / tutorial combatant.**
 
-Introduces danger and basic combat.
+Introduces danger, evasion timing, and rapid multi-hit claw attacks.
 
 ------------------------------------------------------------------------
 
 ## Agile Spirit Guardian
 
-**Fast guardian.**
+**Guardian 1 (Veil I).**
 
 Challenges Rei's understanding of identity and introduces advanced
 combat timing.
@@ -1634,7 +1671,7 @@ combat timing.
 
 ## Mountain Oni
 
-**Heavy guardian.**
+**Guardian 2 (Veil II).**
 
 A large, powerful creature associated with the mountain region and the
 emotional weight of the journey.
@@ -1643,16 +1680,24 @@ emotional weight of the journey.
 
 ## Buried Beast
 
-**Underground guardian.**
+**Guardian 3 (Veil III).**
 
 A large ancient creature representing buried memories and unresolved
 desires.
 
 ------------------------------------------------------------------------
 
+## Guardian 4 [TBA]
+
+**Guardian 4 (Veil IV).**
+
+The 4th most powerful entity in Sauraka Veil; the penultimate guardian trial.
+
+------------------------------------------------------------------------
+
 ## Monkey King
 
-**Final Guardian.**
+**Guardian 5 / Final Boss (Veil V).**
 
 The most intelligent guardian and keeper of the truth behind the Five
 Veils.
@@ -1709,12 +1754,13 @@ with a game attached.
 -   World: **Sauraka Veil**
 -   Companion: **Kohaku**
 -   Main objective: **Five Veils**
--   Opening enemy: **Kappa-like creature**
--   Guardian 1: **Agile Spirit Guardian**
--   Guardian 2: **Mountain Oni / Minotaur**
--   Guardian 3: **Buried Beast / Underground Monster**
--   Final Guardian: **Monkey King**
--   Final boss: **Monkey King**
+-   Opening / Tutorial Enemy: **Shadow Werewolf (Lycan Spirit)**
+-   Guardian 1 (Level 1): **Agile Spirit Guardian (Veil I)**
+-   Guardian 2 (Level 2): **Mountain Oni / Minotaur (Veil II)**
+-   Guardian 3 (Level 3): **Buried Beast / Underground Monster (Veil III)**
+-   Guardian 4 (Level 4): **Penultimate Guardian [TBA - 4th Most Powerful] (Veil IV)**
+-   Guardian 5 (Level 5): **The Monkey King (Veil V)**
+-   Final boss: **The Monkey King**
 -   Dragon: **Removed**
 -   Central twist: **The Five Veils are locks/seals**
 -   Core emotional theme: **Identity, memory, death, and becoming

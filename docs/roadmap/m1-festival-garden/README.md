@@ -4,15 +4,15 @@ The one map of the game, matching the concept image: a sunny sakura garden with 
 
 It must be big enough to explore: about **250 × 250 m** (around 30 s to cross at boost speed), split into **five zones**. Each zone has one landmark and hides one festival lantern, so finding the five lanterns takes the player on a tour of the whole garden.
 
-## Zones
+## Zones & Guardian Encounters
 
-| Zone | Landmark | Lantern | Placeholder position (until 1.1) |
-|---|---|---|---|
-| Sakura Grove (start) | Big sakura trees, stone path | About me | (-40, 10) |
-| River Crossing | River, red arched bridge | Experience | (45, -45) |
-| Torii Path | Row of torii gates up stone stairs | Skills | (-65, -50) |
-| Koi Pond | Pond, stepping stones, rocks | Projects | (50, 40) |
-| Pagoda Hill | Pagoda on the hilltop (fireworks spot) | Contact | (-15, 65) |
+| Zone | Landmark | Veil (Relic / Lock) | Guardian / Encounter | Placeholder position (until 1.1) |
+|---|---|---|---|---|
+| **Sakura Grove** (start) | Big sakura trees, stone path | Veil I: Memory (About me) | Shadow Werewolf (Tutorial) + Guardian 1 (Agile) | (-40, 10) |
+| **River Crossing** | River, red arched bridge | Veil II: Identity (Experience) | Guardian 2: Mountain Oni | (45, -45) |
+| **Torii Path** | Row of torii gates, underground cavern | Veil III: Emotion (Skills) | Guardian 3: Buried Beast | (-65, -50) |
+| **Koi Pond** | Pond, stepping stones, ancient gate | Veil IV: Desire (Projects) | Guardian 4: [TBA - 4th Most Powerful] | (50, 40) |
+| **Pagoda Hill** | Pagoda on the hilltop (summit) | Veil V: Life (Contact) | Guardian 5: The Monkey King (Final Boss) | (-15, 65) |
 
 Rules for lantern spots:
 - 40–100 m from each other, never two in the same view at the start.

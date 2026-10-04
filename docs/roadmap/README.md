@@ -1,6 +1,7 @@
 # Sakura Veil Roadmap
 
-The game is built around one story: the **Sakura Festival** ([docs/story/STORY.md](../story/STORY.md)). Rei lights five festival lanterns in a bright sakura garden; each lantern opens one portfolio card, and lighting all five starts the celebration.
+The game is built around the canonical narrative in [sakura_veil_story_and_characters.md](../../sakura_veil_story_and_characters.md) and the joyful festival aesthetic in [docs/story/STORY.md](../story/STORY.md):
+Rei awakens in Sauraka Veil following Kaori's death, faces the aggressive **Shadow Werewolf** in an opening tutorial encounter, is guided by the Nine-Tailed Fox **Kohaku**, and confronts the **5 Level Guardians** guarding the **Five Veils (Relics/Locks)**. Each relic opens one portfolio card, and unsealing all five triggers the grand celebration and truth revelation.
 
 The work is split into **master phases**, each master phase into **sub-phases**, and each sub-phase has its own `plan.md` with numbered steps and a **Done when** checklist. Work through one sub-phase at a time. A sub-phase is done only when its checklist passes in the running game (`npm run dev`) and `npm run build` succeeds.
 
@@ -14,7 +15,8 @@ There is no 3D modeller on the team, so every model comes from free libraries (s
 | M1 | [Festival Garden](m1-festival-garden/README.md) | A 250 × 250 m garden in five zones, each with a landmark and one hidden lantern | Not started |
 | M2 | [Lantern gameplay loop](m2-lantern-loop/README.md) | Fly → press E → lantern lights → card opens → progress saved | Done (gamepad/mobile untested) |
 | M3 | [Portfolio content](m3-portfolio-content/README.md) | Real About / Experience / Skills / Projects / Contact cards | Waiting on content |
-| M4 | [Celebration](m4-celebration/README.md) | Festival level, petals, glow, confetti and the fireworks finale | Not started |
+| M8 | [Guardians & Combat](m8-guardians-combat/README.md) | Shadow Werewolf tutorial encounter + 5 Level Guardians (Agile, Mountain Oni, Buried Beast, 4th Guardian TBA, Monkey King boss) | In planning |
+| M4 | [Celebration](m4-celebration/README.md) | Festival level, petals, glow, confetti, fireworks finale, and truth revelation | Not started |
 | M5 | [Rei](m5-rei/README.md) | Rei matches the concept turnaround | Postponed (Rei model being reworked) |
 | M6 | [Audio and UI](m6-audio-ui/README.md) | Story text, lantern counter, festival music, SFX, loading screen | In progress |
 | M7 | [Performance and release](m7-release/README.md) | Runs well on laptops and phones, deployed | Not started |
@@ -22,7 +24,7 @@ There is no 3D modeller on the team, so every model comes from free libraries (s
 
 ## Build order
 
-M0 → M2 → M1 → M3 → M4 → M6 → M7. M5 slots in whenever the new Rei model is ready.
+M0 → M2 → M1 → M3 → M8 → M4 → M6 → M7. M5 slots in whenever the new Rei model is ready.
 
 M2 comes before M1 on purpose: the lantern loop is built and tested on the current map with placeholder positions, so the game is playable end to end early. M1 then gives the lanterns their final homes in the festival garden.
 
